@@ -8,9 +8,6 @@ from utils.formatting import snake_case
 from utils.log import get_logger
 from utils.modify_settings import add_action, delete_action, add_event, link_action_to_event, unlink_action_to_event
 from utils.validators import CustomName
-from ib_insync import IB
-
-ib = IB()
 
 app = typer.Typer()
 
@@ -61,7 +58,6 @@ def start(
 
     def run_server():
         print("Close server with Ctrl+C in terminal.")
-        ib.connect('127.0.0.1', 4001, clientId=0)
         run(f'gunicorn --bind {host}:{port} wsgi:app'.split(' '))
 
     # clear gui key if gui is set to open, else generate key
