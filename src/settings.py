@@ -1,9 +1,9 @@
 # actions
-REGISTERED_ACTIONS = ['PrintData']
+REGISTERED_ACTIONS = ['PrintData', 'IBOrderExecute']
 
 # events
-REGISTERED_EVENTS = ['WebhookReceived']
+REGISTERED_EVENTS = ['IBWebhook', 'WebhookReceived']
 
 # links
-REGISTERED_LINKS = [('PrintData', 'WebhookReceived')]
+REGISTERED_LINKS = [('IBOrderExecute', 'IBWebhook'), ('PrintData', 'WebhookReceived')]
 
