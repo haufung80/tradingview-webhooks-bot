@@ -1,9 +1,19 @@
 from components.actions.base.action import Action
 from ib_insync import *
 
+from retry import retry
+
 util.logToConsole()
 ib = IB()
-ib.connect('127.0.0.1', 4001, clientId=0)
+
+
+@retry(delay=10)
+def connect_ib():
+    ib.connect('127.0.0.1', 4001, clientId=0)
+
+
+connect_ib()
+
 
 class IBOrderExecute(Action):
     def __init__(self):
@@ -33,4 +43,3 @@ class IBOrderExecute(Action):
         print('Trade Log:', trade.log)
 
         return 'OK'
-
