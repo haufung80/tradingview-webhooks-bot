@@ -25,7 +25,7 @@ def start(
             default='0.0.0.0'
         ),
         port: int = typer.Option(
-            default=5001
+            default=80
         )
 ):
     def clear_gui_key():
