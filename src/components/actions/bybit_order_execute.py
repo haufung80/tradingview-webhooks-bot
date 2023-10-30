@@ -18,7 +18,7 @@ class BybitOrderExecute(Action):
         markets = self.exchange.load_markets()
 
     def place_order(self, data):
-        formatted_amount = self.exchange.amount_to_precision(data['symbol'], data['amount'])
+        formatted_amount = self.exchange.amount_to_precision(data['symbol'], float(data['amount']))
         order = self.exchange.create_market_order(data['symbol'], data['action'], formatted_amount)
         print(order)
 
