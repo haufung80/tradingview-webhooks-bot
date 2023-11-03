@@ -18,8 +18,11 @@ class BybitOrderExecute(Action):
         markets = self.exchange.load_markets()
 
     def place_order(self, data):
-        formatted_amount = self.exchange.amount_to_precision(data['symbol'], float(data['amount']))
-        order = self.exchange.create_market_order(data['symbol'], data['action'], formatted_amount)
+        symbol = None
+        if data['symbol'] == 'BTCUSDT.P':
+            symbol = 'BTCUSDT'
+        formatted_amount = self.exchange.amount_to_precision(symbol, float(data['amount']))
+        order = self.exchange.create_market_order(symbol, data['action'], formatted_amount)
         print(order)
 
     def run(self, *args, **kwargs):
