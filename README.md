@@ -127,3 +127,13 @@ Thanks to @khamarr3524 for pointing out there are some docker differences when r
 #### How do I get more help?
 
 At the moment, the wiki is under construction.  However, you may still find some good info on there.  For additional assistance you can DM me on [Twitter](https://twitter.com/robswc) or join the [Discord](https://discord.gg/wrjuSaZCFh).  I will try my best to get back to you!
+
+#### Command to create new event and register it, new action and register it  and link them together?
+
+action:create FutuOrderExecute --register
+
+event:create FutuWebhook --register
+
+event:register FutuWebhook
+
+action:link FutuOrderExecute FutuWebhook

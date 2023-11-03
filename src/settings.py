@@ -1,9 +1,9 @@
 # actions
-REGISTERED_ACTIONS = ['PrintData', 'IBOrderExecute', 'BybitOrderExecute']
+REGISTERED_ACTIONS = ['PrintData', 'IBOrderExecute', 'FutuOrderExecute', 'BybitOrderExecute']
 
 # events
-REGISTERED_EVENTS = ['BybitWebhook', 'WebhookReceived', 'IBWebhook']
+REGISTERED_EVENTS = ['WebhookReceived', 'IBWebhook', 'BybitWebhook', 'FutuWebhook']
 
 # links
-REGISTERED_LINKS = [('IBOrderExecute', 'IBWebhook'), ('BybitOrderExecute', 'BybitWebhook'), ('PrintData', 'WebhookReceived')]
+REGISTERED_LINKS = [('PrintData', 'WebhookReceived'), ('FutuOrderExecute', 'FutuWebhook'), ('BybitOrderExecute', 'BybitWebhook'), ('IBOrderExecute', 'IBWebhook')]
 
