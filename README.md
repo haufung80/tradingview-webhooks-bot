@@ -137,3 +137,10 @@ event:create FutuWebhook --register
 event:register FutuWebhook
 
 action:link FutuOrderExecute FutuWebhook
+
+#### SQLAlchemy ORM Migration
+reference: https://dev.to/chrisjryan/database-migration-with-python-3gmg
+
+step 1: modify ./src/model/model.py
+step 2: alembic revision --autogenerate -m "commit message"
+step 3: alembic upgrade head
