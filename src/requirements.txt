@@ -17,3 +17,7 @@ ib_insync
 retry
 ccxt
 futu-api
+alembic
+sqlalchemy
+python-dotenv
+psycopg2-binary
