@@ -27,6 +27,7 @@ class AlertHistory(Base, BaseMixin):
     strategy_id = Column(String(50))
     timestamp = Column(DateTime())
     symbol = Column(String(50))
+    exchange = Column(String(50))
     action = Column(String(50))
     price = Column(Float())
 
