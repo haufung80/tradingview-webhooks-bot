@@ -19,6 +19,16 @@ class BaseMixin:
         server_default=func.now(),
         onupdate=func.now())
 
+class AlertHistory(Base, BaseMixin):
+    __tablename__ = 'alert_history'
+
+    source = Column(String(50))
+    message_payload = Column(String())
+    strategy_id = Column(String(50))
+    timestamp = Column(DateTime())
+    symbol = Column(String(50))
+    action = Column(String(50))
+    price = Column(Float())
 
 class Strategy(Base, BaseMixin):
     __tablename__ = 'strategy'
