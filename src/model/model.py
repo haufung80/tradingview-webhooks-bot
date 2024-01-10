@@ -31,7 +31,9 @@ class OrderHistory(Base, BaseMixin):
     price = Column(Float())
     amount = Column(Float())
     active = Column(Boolean())
-    fund = Column(Float())
+    position_size = Column(Float(10))
+    position_fund = Column(Float())
+    total_fund = Column(Float())
     exchange = Column(String(50))
     order_payload = Column(String())
 
