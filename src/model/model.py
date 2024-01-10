@@ -23,19 +23,28 @@ class BaseMixin:
 class OrderHistory(Base, BaseMixin):
     __tablename__ = 'order_history'
 
-    order_id = Column(String(100))
+    order_id = Column(String())
     strategy_id = Column(String(50))
-    execution_time = Column(DateTime())
-    symbol = Column(String(50))
-    action = Column(String(50))
-    price = Column(Float())
-    amount = Column(Float())
+    exec_time = Column(DateTime())
+    source_symbol = Column(String(10))
+    exchange_symbol = Column(String(10))
+    action = Column(String(10))
+    order_status = Column(String(10))
+    order_price = Column(Float(20))
+    avg_price = Column(Float(20))
+    exec_value = Column(Float(20))
+    order_amt = Column(Float(20))
+    filled_amt = Column(Float(20))
+    fee_rate = Column(Float(20))
+    total_fee = Column(Float(20))
     active = Column(Boolean())
     position_size = Column(Float(10))
-    position_fund = Column(Float())
-    total_fund = Column(Float())
-    exchange = Column(String(50))
-    order_payload = Column(String())
+    position_fund = Column(Float(20))
+    fund_diff = Column(Float(20))
+    total_fund = Column(Float(20))
+    exchange = Column(String(20))
+    order_payload_1 = Column(String())
+    order_payload_2 = Column(String())
 
 
 class AlertHistory(Base, BaseMixin):

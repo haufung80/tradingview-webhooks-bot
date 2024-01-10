@@ -36,11 +36,11 @@ class BybitOrderExecute(Action):
         markets = self.exchange.load_markets()
 
     def place_order(self, data):
-        symbol = None
+        exchange_symbol = None
         if data['symbol'] == 'BTCUSDT.P':
-            symbol = 'BTCUSDT'
+            exchange_symbol = 'BTCUSDT'
         elif data['symbol'] == 'BNBUSDT.P':
-            symbol = 'BNBUSDT'
+            exchange_symbol = 'BNBUSDT'
 
         with Session(engine) as session:
             session.add(AlertHistory(
@@ -57,25 +57,83 @@ class BybitOrderExecute(Action):
 
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
-            amount = (strategy.fund * strategy.position_size) / float(data['price'])
-            formatted_amount = self.exchange.amount_to_precision(symbol, amount)
-            order = self.exchange.create_limit_order(symbol, data['action'], formatted_amount, data['price'])
-            session.add(OrderHistory(
-                order_id=order['info']['orderId'],
-                strategy_id=data['strategy_id'],
-                execution_time=datetime.now(),
-                symbol=data['symbol'],
-                action=data['action'],
-                price=data['price'],
-                amount=formatted_amount,
-                active=True,
-                position_size=float(data['price']) * float(formatted_amount) / strategy.fund,
-                position_fund=float(data['price']) * float(formatted_amount),
-                total_fund=strategy.fund,
-                exchange=data['exchange'],
-                order_payload=str(order)
-            ))
-            session.commit()
+            if data['action'] == 'buy':
+                amount = (strategy.fund * strategy.position_size) / float(data['price'])
+                formatted_amount = self.exchange.amount_to_precision(exchange_symbol, amount)
+                order = self.exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
+                                                         data['price'])
+                session.add(OrderHistory(
+                    order_id=order['info']['orderId'],
+                    strategy_id=data['strategy_id'],
+                    exec_time=datetime.now(),
+                    exchange_symbol=exchange_symbol,
+                    action=data['action'],
+                    order_price=data['price'],
+                    order_amt=formatted_amount,
+                    active=True,
+                    position_size=float(data['price']) * float(formatted_amount) / strategy.fund,
+                    position_fund=float(data['price']) * float(formatted_amount),
+                    total_fund=strategy.fund,
+                    exchange=data['exchange'],
+                    order_payload_1=str(order)
+                ))
+
+                strategy.active_order = True
+                session.commit()
+            else:
+                existing_order_hist = session.execute(select(OrderHistory)
+                                                      .where(OrderHistory.strategy_id == data['strategy_id'])
+                                                      .where(OrderHistory.exchange == data['exchange'])
+                                                      .order_by(OrderHistory.created_at.desc()).limit(1)).scalar_one()
+                if existing_order_hist.active:
+                    existing_pos_order = self.exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
+
+                    existing_pos_order.order_status = existing_pos_order['info']['orderStatus']
+                    existing_pos_order.avg_price = float(existing_pos_order['info']['avgPrice'])
+                    existing_pos_order.exec_value = float(existing_pos_order['info']['cumExecValue'])
+                    existing_pos_order.filled_time = datetime.fromtimestamp(existing_pos_order['info']['updatedTime'])
+                    existing_pos_order.filled_amt = float(existing_pos_order['info']['filled'])
+                    existing_pos_order.total_fee = float(existing_pos_order['info']['cumExecFee'])
+                    existing_pos_order.order_id_2 = str(existing_pos_order)
+                    existing_pos_order.fund_diff = float(existing_pos_order['info']['cumExecFee'])
+                    existing_pos_order.total_fund = existing_pos_order.total_fund - float(
+                        existing_pos_order['info']['cumExecFee'])
+                    existing_pos_order.updated_at = datetime.now()
+                    session.flush()
+
+                    order_1 = self.exchange.create_market_order(exchange_symbol, data['action'],
+                                                                existing_pos_order.filled_amt)
+                    order_2 = self.exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
+
+                    fund_diff = float(order_2['info']['cumExecValue']) - existing_pos_order.exec_value - float(
+                        order_2['info']['cumExecFee'])
+                    total_fund = existing_pos_order.total_fund + fund_diff
+                    session.add(OrderHistory(
+                        order_id=order_1['info']['orderId'],
+                        strategy_id=data['strategy_id'],
+                        exec_time=datetime.now(),
+                        exchange_symbol=exchange_symbol,
+                        action=data['action'],
+                        order_price=data['price'],
+                        order_amt=existing_pos_order.filled_amt,
+                        active=False,
+                        exchange=data['exchange'],
+                        order_status=order_2['info']['orderStatus'],
+                        avg_price=float(order_2['info']['avgPrice']),
+                        exec_value=float(order_2['info']['cumExecValue']),
+                        filled_time=datetime.fromtimestamp(order_2['info']['updatedTime']),
+                        filled_amt=float(order_2['info']['filled']),
+                        total_fee=float(order_2['info']['cumExecFee']),
+                        fund_diff=fund_diff,
+                        total_fund=total_fund,
+                        order_id_1=str(order_1),
+                        order_id_2=str(order_2),
+                    ))
+
+                    strategy.active_order = False
+                    strategy.total_fund = total_fund
+                    strategy.updated_at = datetime.now()
+                    session.commit()
 
     def run(self, *args, **kwargs):
         super().run(*args, **kwargs)  # this is required
