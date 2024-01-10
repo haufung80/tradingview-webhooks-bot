@@ -60,7 +60,6 @@ class BybitOrderExecute(Action):
             amount = (strategy.fund * strategy.position_size) / float(data['price'])
             formatted_amount = self.exchange.amount_to_precision(symbol, amount)
             order = self.exchange.create_limit_order(symbol, data['action'], formatted_amount, data['price'])
-            print(order)
             session.add(OrderHistory(
                 order_id=order['info']['orderId'],
                 strategy_id=data['strategy_id'],
