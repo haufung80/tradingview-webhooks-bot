@@ -5,7 +5,7 @@ from datetime import datetime
 
 import ccxt as ccxt
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from components.actions.base.action import Action
@@ -15,7 +15,7 @@ sys.path.append(os.path.split(os.getcwd())[0])
 load_dotenv()
 engine = create_engine(os.getenv('POSTGRESQL_URL'), echo=True)
 
-from src.model.model import AlertHistory
+from src.model.model import *
 
 
 class BybitOrderExecute(Action):
@@ -45,7 +45,7 @@ class BybitOrderExecute(Action):
         with Session(engine) as session:
             session.add(AlertHistory(
                 source=data['source'],
-                message_payload=data,
+                message_payload=str(data),
                 strategy_id=data['strategy_id'],
                 timestamp=datetime.fromtimestamp(data['timestamp']),
                 symbol=data['symbol'],
@@ -55,9 +55,28 @@ class BybitOrderExecute(Action):
             ))
             session.commit()
 
-        formatted_amount = self.exchange.amount_to_precision(symbol, float(data['amount']))
-        order = self.exchange.create_limit_order(symbol, data['action'], formatted_amount, data['price'])
-        print(order)
+        with Session(engine) as session:
+            strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
+            amount = (strategy.fund * strategy.position_size) / float(data['price'])
+            formatted_amount = self.exchange.amount_to_precision(symbol, amount)
+            order = self.exchange.create_limit_order(symbol, data['action'], formatted_amount, data['price'])
+            print(order)
+            session.add(OrderHistory(
+                order_id=order['info']['orderId'],
+                strategy_id=data['strategy_id'],
+                execution_time=datetime.now(),
+                symbol=data['symbol'],
+                action=data['action'],
+                price=data['price'],
+                amount=formatted_amount,
+                active=True,
+                position_size=float(data['price']) * float(formatted_amount) / strategy.fund,
+                position_fund=float(data['price']) * float(formatted_amount),
+                total_fund=strategy.fund,
+                exchange=data['exchange'],
+                order_payload=str(order)
+            ))
+            session.commit()
 
     def run(self, *args, **kwargs):
         super().run(*args, **kwargs)  # this is required
