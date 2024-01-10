@@ -1,12 +1,14 @@
-from components.actions.base.action import Action
-import ccxt as ccxt
 import configparser
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
 import os
 import sys
-from dotenv import load_dotenv
 from datetime import datetime
+
+import ccxt as ccxt
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+from components.actions.base.action import Action
 
 sys.path.append(os.path.split(os.getcwd())[0])
 
@@ -27,6 +29,7 @@ class BybitOrderExecute(Action):
     })
 
     exchange.set_sandbox_mode(config['BybitSettings']['set_sandbox_mode'])
+
     def __init__(self):
         super().__init__()
         self.exchange.check_required_credentials()  # raises AuthenticationError
