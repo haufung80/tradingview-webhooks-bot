@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Integer, Float
 from sqlalchemy import Column, DateTime, func
+from sqlalchemy import String, Float, Boolean
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -19,6 +19,23 @@ class BaseMixin:
         server_default=func.now(),
         onupdate=func.now())
 
+
+class OrderHistory(Base, BaseMixin):
+    __tablename__ = 'order_history'
+
+    order_id = Column(String(100))
+    strategy_id = Column(String(50))
+    execution_time = Column(DateTime())
+    symbol = Column(String(50))
+    action = Column(String(50))
+    price = Column(Float())
+    amount = Column(Float())
+    active = Column(Boolean())
+    fund = Column(Float())
+    exchange = Column(String(50))
+    order_payload = Column(String())
+
+
 class AlertHistory(Base, BaseMixin):
     __tablename__ = 'alert_history'
 
@@ -35,6 +52,7 @@ class Strategy(Base, BaseMixin):
     __tablename__ = 'strategy'
 
     strategy_id = Column(String(50))
+    symbol = Column(String(50))
     position_size = Column(Float())
     parameter_1 = Column(String(50))
     value_1 = Column(String(50))
@@ -44,3 +62,5 @@ class Strategy(Base, BaseMixin):
     value_3 = Column(String(50))
     parameter_4 = Column(String(50))
     value_4 = Column(String(50))
+    active_order = Column(Boolean())
+    fund = Column(Float())
