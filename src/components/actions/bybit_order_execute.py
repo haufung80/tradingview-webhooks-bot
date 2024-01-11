@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 
 import ccxt as ccxt
+import pytz
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -47,7 +48,7 @@ class BybitOrderExecute(Action):
                 source=data['source'],
                 message_payload=str(data),
                 strategy_id=data['strategy_id'],
-                timestamp=datetime.fromtimestamp(data['timestamp']),
+                timestamp=pytz.timezone('UTC').localize(datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%SZ')),
                 symbol=data['symbol'],
                 exchange=data['exchange'],
                 action=data['action'],
