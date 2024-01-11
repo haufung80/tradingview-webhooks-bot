@@ -1,5 +1,5 @@
 from sqlalchemy import Column, DateTime, func
-from sqlalchemy import String, Float, Boolean
+from sqlalchemy import String, Float, Boolean, REAL
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -30,21 +30,21 @@ class OrderHistory(Base, BaseMixin):
     exchange_symbol = Column(String(10))
     action = Column(String(10))
     order_status = Column(String(10))
-    order_price = Column(Float(20))
-    avg_price = Column(Float(20))
-    exec_value = Column(Float(20))
-    order_amt = Column(Float(20))
+    order_price = Column(REAL())
+    avg_price = Column(REAL())
+    exec_value = Column(REAL())
+    order_amt = Column(REAL())
     open_timestamp = Column(String(20))
     open_datetime = Column(DateTime())
     fill_timestamp = Column(String(20))
     fill_datetime = Column(DateTime())
-    filled_amt = Column(Float(20))
-    fee_rate = Column(Float(20))
-    total_fee = Column(Float(20))
+    filled_amt = Column(REAL())
+    fee_rate = Column(REAL())
+    total_fee = Column(REAL())
     active = Column(Boolean())
-    position_size = Column(Float(10))
+    position_size = Column(REAL())
     position_fund = Column(Float(20))
-    fund_diff = Column(Float(20))
+    fund_diff = Column(REAL())
     total_fund = Column(Float(20))
     exchange = Column(String(20))
     order_payload_1 = Column(String())
