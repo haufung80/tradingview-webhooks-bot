@@ -24,13 +24,13 @@ class BybitOrderExecute(Action):
     config.read('config.ini')
     API_KEY = config['BybitSettings']['key']
     API_SECRET = config['BybitSettings']['secret']
-    print('API_KEY: ' + API_KEY)
     exchange = ccxt.bybit({
         'apiKey': API_KEY,
         'secret': API_SECRET
     })
 
-    exchange.set_sandbox_mode(config['BybitSettings']['set_sandbox_mode'])
+    if config['BybitSettings']['set_sandbox_mode'] == 'True':
+        exchange.set_sandbox_mode(True)
 
     def __init__(self):
         super().__init__()
