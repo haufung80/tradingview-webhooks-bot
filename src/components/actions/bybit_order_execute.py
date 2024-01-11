@@ -57,7 +57,7 @@ class BybitOrderExecute(Action):
 
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
-            if data['action'] == 'buy':
+            if data['action'] == 'buy' and not strategy.active_order:
                 amount = (strategy.fund * strategy.position_size) / float(data['price'])
                 formatted_amount = self.exchange.amount_to_precision(exchange_symbol, amount)
                 order = self.exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
@@ -88,7 +88,7 @@ class BybitOrderExecute(Action):
                                                       .order_by(OrderHistory.created_at.desc()).limit(1)).scalar_one()
                 if existing_order_hist.active:
                     existing_pos_order = self.exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
-                    print(existing_pos_order)
+
                     existing_order_hist.order_status = existing_pos_order['info']['orderStatus']
                     existing_order_hist.avg_price = float(existing_pos_order['info']['avgPrice'])
                     existing_order_hist.exec_value = float(existing_pos_order['info']['cumExecValue'])
