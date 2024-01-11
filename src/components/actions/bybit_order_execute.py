@@ -144,7 +144,7 @@ class BybitOrderExecute(Action):
                     ))
 
                     strategy.active_order = False
-                    strategy.total_fund = total_fund
+                    strategy.fund = total_fund
                     strategy.updated_at = datetime.now()
                     session.commit()
 
