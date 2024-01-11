@@ -6,7 +6,7 @@ from datetime import datetime
 import ccxt as ccxt
 import pytz
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import Session
 
 from components.actions.base.action import Action
@@ -66,7 +66,7 @@ class BybitOrderExecute(Action):
                 session.add(OrderHistory(
                     order_id=order['info']['orderId'],
                     strategy_id=data['strategy_id'],
-                    exec_time=datetime.now(),
+                    exec_time=func.now(),
                     source_symbol=data['symbol'],
                     exchange_symbol=exchange_symbol,
                     action=data['action'],
@@ -93,16 +93,15 @@ class BybitOrderExecute(Action):
                     existing_order_hist.order_status = existing_pos_order['info']['orderStatus']
                     existing_order_hist.open_timestamp = existing_pos_order['info']['createdTime']
                     existing_order_hist.open_datetime = datetime.fromtimestamp(
-                        int(existing_pos_order['info']['createdTime']) / 1000)
+                        int(existing_pos_order['info']['createdTime']) / 1000, pytz.timezone('Asia/Nicosia'))
                     existing_order_hist.order_payload_2 = str(existing_pos_order)
-                    existing_order_hist.updated_at = datetime.now()
 
                     if existing_pos_order['info']['orderStatus'] != 'New':
                         existing_order_hist.avg_price = float(existing_pos_order['info']['avgPrice'])
                         existing_order_hist.exec_value = float(existing_pos_order['info']['cumExecValue'])
                         existing_order_hist.fill_timestamp = existing_pos_order['info']['updatedTime']
                         existing_order_hist.fill_datetime = datetime.fromtimestamp(
-                            int(existing_pos_order['info']['updatedTime']) / 1000)
+                            int(existing_pos_order['info']['updatedTime']) / 1000, pytz.timezone('Asia/Nicosia'))
                         existing_order_hist.filled_amt = float(existing_pos_order['filled'])
                         existing_order_hist.fee_rate = float(
                             existing_pos_order['info']['cumExecFee']) / existing_order_hist.exec_value
@@ -120,7 +119,7 @@ class BybitOrderExecute(Action):
                         session.add(OrderHistory(
                             order_id=order_1['info']['orderId'],
                             strategy_id=data['strategy_id'],
-                            exec_time=datetime.now(),
+                            exec_time=func.now(),
                             source_symbol=data['symbol'],
                             exchange_symbol=exchange_symbol,
                             action=data['action'],
@@ -128,9 +127,11 @@ class BybitOrderExecute(Action):
                             exchange=data['exchange'],
                             order_status=order_2['info']['orderStatus'],
                             open_timestamp=order_2['info']['createdTime'],
-                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000),
+                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000,
+                                                                 pytz.timezone('Asia/Nicosia')),
                             fill_timestamp=order_2['info']['updatedTime'],
-                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000),
+                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000,
+                                                                 pytz.timezone('Asia/Nicosia')),
                             order_payload_1=str(order_1),
                             order_payload_2=str(order_2),
                         ))
@@ -147,7 +148,7 @@ class BybitOrderExecute(Action):
                         session.add(OrderHistory(
                             order_id=order_1['info']['orderId'],
                             strategy_id=data['strategy_id'],
-                            exec_time=datetime.now(),
+                            exec_time=func.now(),
                             source_symbol=data['symbol'],
                             exchange_symbol=exchange_symbol,
                             action=data['action'],
@@ -159,9 +160,11 @@ class BybitOrderExecute(Action):
                             avg_price=float(order_2['info']['avgPrice']),
                             exec_value=float(order_2['info']['cumExecValue']),
                             open_timestamp=order_2['info']['createdTime'],
-                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000),
+                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000,
+                                                                 pytz.timezone('Asia/Nicosia')),
                             fill_timestamp=order_2['info']['updatedTime'],
-                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000),
+                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000,
+                                                                 pytz.timezone('Asia/Nicosia')),
                             filled_amt=float(order_2['filled']),
                             fee_rate=float(order_2['info']['cumExecFee']) / float(order_2['info']['cumExecValue']),
                             total_fee=float(order_2['info']['cumExecFee']),
@@ -173,7 +176,6 @@ class BybitOrderExecute(Action):
                         strategy.fund = total_fund
 
                     strategy.active_order = False
-                    strategy.updated_at = datetime.now()
                     session.commit()
 
     def run(self, *args, **kwargs):
