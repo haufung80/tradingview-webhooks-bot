@@ -6,7 +6,7 @@ from datetime import datetime
 import ccxt as ccxt
 import pytz
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select, func
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from components.actions.base.action import Action
@@ -66,7 +66,6 @@ class BybitOrderExecute(Action):
                 session.add(OrderHistory(
                     order_id=order['info']['orderId'],
                     strategy_id=data['strategy_id'],
-                    exec_time=func.now(),
                     source_symbol=data['symbol'],
                     exchange_symbol=exchange_symbol,
                     action=data['action'],
@@ -119,7 +118,6 @@ class BybitOrderExecute(Action):
                         session.add(OrderHistory(
                             order_id=order_1['info']['orderId'],
                             strategy_id=data['strategy_id'],
-                            exec_time=func.now(),
                             source_symbol=data['symbol'],
                             exchange_symbol=exchange_symbol,
                             action=data['action'],
@@ -148,7 +146,6 @@ class BybitOrderExecute(Action):
                         session.add(OrderHistory(
                             order_id=order_1['info']['orderId'],
                             strategy_id=data['strategy_id'],
-                            exec_time=func.now(),
                             source_symbol=data['symbol'],
                             exchange_symbol=exchange_symbol,
                             action=data['action'],

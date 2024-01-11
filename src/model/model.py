@@ -25,7 +25,6 @@ class OrderHistory(Base, BaseMixin):
 
     order_id = Column(String())
     strategy_id = Column(String(50))
-    exec_time = Column(DateTime(timezone=True))
     source_symbol = Column(String(10))
     exchange_symbol = Column(String(10))
     action = Column(String(10))
