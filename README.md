@@ -139,8 +139,18 @@ event:register FutuWebhook
 action:link FutuOrderExecute FutuWebhook
 
 #### SQLAlchemy ORM Migration
+
 reference: https://dev.to/chrisjryan/database-migration-with-python-3gmg
 
 step 1: modify ./src/model/model.py
+
 step 2: alembic revision --autogenerate -m "commit message"
+
 step 3: alembic upgrade head
+
+#### Order Execution Logic
+
+Open position: get the price from source, create limit order, create order history, update strategy active order Close
+position: check current position from order id, get execution details, update order history, create cancel order, get
+cancel order execution detail, create order history
+
