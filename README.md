@@ -148,9 +148,26 @@ step 2: alembic revision --autogenerate -m "commit message"
 
 step 3: alembic upgrade head
 
-#### Order Execution Logic
+### Order Execution Logic
 
-Open position: get the price from source, create limit order, create order history, update strategy active order Close
-position: check current position from order id, get execution details, update order history, create cancel order, get
-cancel order execution detail, create order history
+#### Open position:
 
+get the price from source, create limit order, create order history, update strategy active order
+
+#### Close position:
+
+first, check current position from order id, get execution details, update order history for the current position.
+
+if the order is not filled:
+
+1. cancel the order, create order history
+
+if the order is filled:
+
+1. create selling order, get selling order execution detail, create order history
+
+if the order is partially filled:
+
+1. cancel the order, create order history
+
+2. create selling order, get selling order execution detail, create order history
