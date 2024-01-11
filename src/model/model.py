@@ -23,7 +23,7 @@ class BaseMixin:
 class OrderHistory(Base, BaseMixin):
     __tablename__ = 'order_history'
 
-    order_id = Column(String())
+    order_id = Column(String(), unique=True)
     strategy_id = Column(String(50))
     source_symbol = Column(String(10))
     exchange_symbol = Column(String(10))
@@ -65,7 +65,8 @@ class AlertHistory(Base, BaseMixin):
 class Strategy(Base, BaseMixin):
     __tablename__ = 'strategy'
 
-    strategy_id = Column(String(50))
+    strategy_id = Column(String(50), unique=True)
+    strategy_name = Column(String(50))
     symbol = Column(String(50))
     position_size = Column(Float())
     parameter_1 = Column(String(50))
