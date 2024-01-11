@@ -90,61 +90,88 @@ class BybitOrderExecute(Action):
                     existing_pos_order = self.exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
 
                     existing_order_hist.order_status = existing_pos_order['info']['orderStatus']
-                    existing_order_hist.avg_price = float(existing_pos_order['info']['avgPrice'])
-                    existing_order_hist.exec_value = float(existing_pos_order['info']['cumExecValue'])
                     existing_order_hist.open_timestamp = existing_pos_order['info']['createdTime']
                     existing_order_hist.open_datetime = datetime.fromtimestamp(
                         int(existing_pos_order['info']['createdTime']) / 1000)
-                    existing_order_hist.fill_timestamp = existing_pos_order['info']['updatedTime']
-                    existing_order_hist.fill_datetime = datetime.fromtimestamp(
-                        int(existing_pos_order['info']['updatedTime']) / 1000)
-                    existing_order_hist.filled_amt = float(existing_pos_order['filled'])
-                    existing_order_hist.fee_rate = float(
-                        existing_pos_order['info']['cumExecFee']) / existing_order_hist.exec_value
-                    existing_order_hist.total_fee = float(existing_pos_order['info']['cumExecFee'])
                     existing_order_hist.order_payload_2 = str(existing_pos_order)
-                    existing_order_hist.fund_diff = -float(existing_pos_order['info']['cumExecFee'])
-                    existing_order_hist.total_fund = existing_order_hist.total_fund - float(
-                        existing_pos_order['info']['cumExecFee'])
                     existing_order_hist.updated_at = datetime.now()
+
+                    if existing_pos_order['info']['orderStatus'] != 'New':
+                        existing_order_hist.avg_price = float(existing_pos_order['info']['avgPrice'])
+                        existing_order_hist.exec_value = float(existing_pos_order['info']['cumExecValue'])
+                        existing_order_hist.fill_timestamp = existing_pos_order['info']['updatedTime']
+                        existing_order_hist.fill_datetime = datetime.fromtimestamp(
+                            int(existing_pos_order['info']['updatedTime']) / 1000)
+                        existing_order_hist.filled_amt = float(existing_pos_order['filled'])
+                        existing_order_hist.fee_rate = float(
+                            existing_pos_order['info']['cumExecFee']) / existing_order_hist.exec_value
+                        existing_order_hist.total_fee = float(existing_pos_order['info']['cumExecFee'])
+                        existing_order_hist.fund_diff = -float(existing_pos_order['info']['cumExecFee'])
+
+                        existing_order_hist.total_fund = existing_order_hist.total_fund - float(
+                            existing_pos_order['info']['cumExecFee'])
                     session.flush()
 
-                    order_1 = self.exchange.create_market_order(exchange_symbol, data['action'],
-                                                                existing_order_hist.filled_amt)
-                    order_2 = self.exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
+                    if existing_pos_order['info']['orderStatus'] == 'New' or existing_pos_order['info'][
+                        'orderStatus'] == 'PartiallyFilled':
+                        order_1 = self.exchange.cancel_order(existing_order_hist.order_id, exchange_symbol)
+                        order_2 = self.exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
+                        session.add(OrderHistory(
+                            order_id=order_1['info']['orderId'],
+                            strategy_id=data['strategy_id'],
+                            exec_time=datetime.now(),
+                            source_symbol=data['symbol'],
+                            exchange_symbol=exchange_symbol,
+                            action=data['action'],
+                            active=False,
+                            exchange=data['exchange'],
+                            order_status=order_2['info']['orderStatus'],
+                            open_timestamp=order_2['info']['createdTime'],
+                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000),
+                            fill_timestamp=order_2['info']['updatedTime'],
+                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000),
+                            order_payload_1=str(order_1),
+                            order_payload_2=str(order_2),
+                        ))
 
-                    fund_diff = float(order_2['info']['cumExecValue']) - existing_order_hist.exec_value - float(
-                        order_2['info']['cumExecFee'])
-                    total_fund = existing_order_hist.total_fund + fund_diff
-                    session.add(OrderHistory(
-                        order_id=order_1['info']['orderId'],
-                        strategy_id=data['strategy_id'],
-                        exec_time=datetime.now(),
-                        source_symbol=data['symbol'],
-                        exchange_symbol=exchange_symbol,
-                        action=data['action'],
-                        order_price=data['price'],
-                        order_amt=existing_order_hist.filled_amt,
-                        active=False,
-                        exchange=data['exchange'],
-                        order_status=order_2['info']['orderStatus'],
-                        avg_price=float(order_2['info']['avgPrice']),
-                        exec_value=float(order_2['info']['cumExecValue']),
-                        open_timestamp=order_2['info']['createdTime'],
-                        open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000),
-                        fill_timestamp=order_2['info']['updatedTime'],
-                        fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000),
-                        filled_amt=float(order_2['filled']),
-                        fee_rate=float(order_2['info']['cumExecFee']) / float(order_2['info']['cumExecValue']),
-                        total_fee=float(order_2['info']['cumExecFee']),
-                        fund_diff=fund_diff,
-                        total_fund=total_fund,
-                        order_payload_1=str(order_1),
-                        order_payload_2=str(order_2),
-                    ))
+                    if existing_pos_order['info']['orderStatus'] == 'Filled' or existing_pos_order['info'][
+                        'orderStatus'] == 'PartiallyFilled':
+                        order_1 = self.exchange.create_market_order(exchange_symbol, data['action'],
+                                                                    existing_order_hist.filled_amt)
+                        order_2 = self.exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
+
+                        fund_diff = float(order_2['info']['cumExecValue']) - existing_order_hist.exec_value - float(
+                            order_2['info']['cumExecFee'])
+                        total_fund = existing_order_hist.total_fund + fund_diff
+                        session.add(OrderHistory(
+                            order_id=order_1['info']['orderId'],
+                            strategy_id=data['strategy_id'],
+                            exec_time=datetime.now(),
+                            source_symbol=data['symbol'],
+                            exchange_symbol=exchange_symbol,
+                            action=data['action'],
+                            order_price=data['price'],
+                            order_amt=existing_order_hist.filled_amt,
+                            active=False,
+                            exchange=data['exchange'],
+                            order_status=order_2['info']['orderStatus'],
+                            avg_price=float(order_2['info']['avgPrice']),
+                            exec_value=float(order_2['info']['cumExecValue']),
+                            open_timestamp=order_2['info']['createdTime'],
+                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000),
+                            fill_timestamp=order_2['info']['updatedTime'],
+                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000),
+                            filled_amt=float(order_2['filled']),
+                            fee_rate=float(order_2['info']['cumExecFee']) / float(order_2['info']['cumExecValue']),
+                            total_fee=float(order_2['info']['cumExecFee']),
+                            fund_diff=fund_diff,
+                            total_fund=total_fund,
+                            order_payload_1=str(order_1),
+                            order_payload_2=str(order_2),
+                        ))
+                        strategy.fund = total_fund
 
                     strategy.active_order = False
-                    strategy.fund = total_fund
                     strategy.updated_at = datetime.now()
                     session.commit()
 
