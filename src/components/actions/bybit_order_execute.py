@@ -41,8 +41,20 @@ class BybitOrderExecute(Action):
         exchange_symbol = None
         if data['symbol'] == 'BTCUSDT.P':
             exchange_symbol = 'BTCUSDT'
-        elif data['symbol'] == 'BNBUSDT.P':
-            exchange_symbol = 'BNBUSDT'
+        elif data['symbol'] == 'ETHUSDT.P':
+            exchange_symbol = 'ETHUSDT'
+        elif data['symbol'] == 'SOLUSDT.P':
+            exchange_symbol = 'SOLUSDT'
+        elif data['symbol'] == 'INJUSDT.P':
+            exchange_symbol = 'INJUSDT'
+        elif data['symbol'] == 'CAKEUSDT':
+            exchange_symbol = 'CAKEUSDT'
+        elif data['symbol'] == 'AVAXUSDT.P':
+            exchange_symbol = 'AVAXUSDT'
+        elif data['symbol'] == 'VETUSDT.P':
+            exchange_symbol = 'VETUSDT'
+        elif data['symbol'] == 'RNDRUSDT.P':
+            exchange_symbol = 'RNDRUSDT'
 
         with Session(engine) as session:
             session.add(AlertHistory(
