@@ -94,7 +94,7 @@ class BybitOrderExecute(Action):
 
                 strategy.active_order = True
                 session.commit()
-            else:
+            elif data['action'] == 'sell' and strategy.active_order:
                 existing_order_hist = session.execute(select(OrderHistory)
                                                       .where(OrderHistory.strategy_id == data['strategy_id'])
                                                       .where(OrderHistory.exchange == data['exchange'])
