@@ -128,24 +128,9 @@ class BybitOrderExecute(Action):
                         'orderStatus'] == 'PartiallyFilled':
                         order_1 = self.exchange.cancel_order(existing_order_hist.order_id, exchange_symbol)
                         order_2 = self.exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
-                        session.add(OrderHistory(
-                            order_id=order_1['info']['orderId'],
-                            strategy_id=data['strategy_id'],
-                            source_symbol=data['symbol'],
-                            exchange_symbol=exchange_symbol,
-                            action=data['action'],
-                            active=False,
-                            exchange=data['exchange'],
-                            order_status=order_2['info']['orderStatus'],
-                            open_timestamp=order_2['info']['createdTime'],
-                            open_datetime=datetime.fromtimestamp(int(order_2['info']['createdTime']) / 1000,
-                                                                 pytz.timezone('Asia/Nicosia')),
-                            fill_timestamp=order_2['info']['updatedTime'],
-                            fill_datetime=datetime.fromtimestamp(int(order_2['info']['updatedTime']) / 1000,
-                                                                 pytz.timezone('Asia/Nicosia')),
-                            order_payload_1=str(order_1),
-                            order_payload_2=str(order_2),
-                        ))
+                        existing_order_hist.order_payload_2 = str(order_2)  # overriding above
+                        existing_order_hist.order_status = order_2['info']['orderStatus']
+                        existing_order_hist.active = False
 
                     if existing_pos_order['info']['orderStatus'] == 'Filled' or existing_pos_order['info'][
                         'orderStatus'] == 'PartiallyFilled':
