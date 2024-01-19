@@ -55,6 +55,8 @@ class BybitOrderExecute(Action):
             exchange_symbol = 'VETUSDT'
         elif data['symbol'] == 'RNDRUSDT.P':
             exchange_symbol = 'RNDRUSDT'
+        elif data['symbol'] == 'LINKUSDT.P':
+            exchange_symbol = 'LINKUSDT'
 
         with Session(engine) as session:
             session.add(AlertHistory(
