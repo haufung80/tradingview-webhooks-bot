@@ -19,6 +19,27 @@ engine = create_engine(os.getenv('POSTGRESQL_URL'), echo=True)
 from src.model.model import *
 
 
+def symbol_translate(symbol):
+    if symbol == 'BTCUSDT.P':
+        return 'BTCUSDT'
+    elif symbol == 'ETHUSDT.P':
+        return 'ETHUSDT'
+    elif symbol == 'SOLUSDT.P':
+        return 'SOLUSDT'
+    elif symbol == 'INJUSDT.P':
+        return 'INJUSDT'
+    elif symbol == 'CAKEUSDT':
+        return 'CAKEUSDT'
+    elif symbol == 'AVAXUSDT.P':
+        return 'AVAXUSDT'
+    elif symbol == 'VETUSDT.P':
+        return 'VETUSDT'
+    elif symbol == 'RNDRUSDT.P':
+        return 'RNDRUSDT'
+    elif symbol == 'LINKUSDT.P':
+        return 'LINKUSDT'
+
+
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -38,26 +59,7 @@ class BybitOrderExecute(Action):
         markets = self.exchange.load_markets()
 
     def place_order(self, data):
-        exchange_symbol = None
-        if data['symbol'] == 'BTCUSDT.P':
-            exchange_symbol = 'BTCUSDT'
-        elif data['symbol'] == 'ETHUSDT.P':
-            exchange_symbol = 'ETHUSDT'
-        elif data['symbol'] == 'SOLUSDT.P':
-            exchange_symbol = 'SOLUSDT'
-        elif data['symbol'] == 'INJUSDT.P':
-            exchange_symbol = 'INJUSDT'
-        elif data['symbol'] == 'CAKEUSDT':
-            exchange_symbol = 'CAKEUSDT'
-        elif data['symbol'] == 'AVAXUSDT.P':
-            exchange_symbol = 'AVAXUSDT'
-        elif data['symbol'] == 'VETUSDT.P':
-            exchange_symbol = 'VETUSDT'
-        elif data['symbol'] == 'RNDRUSDT.P':
-            exchange_symbol = 'RNDRUSDT'
-        elif data['symbol'] == 'LINKUSDT.P':
-            exchange_symbol = 'LINKUSDT'
-
+        exchange_symbol = symbol_translate(data['symbol'])
         with Session(engine) as session:
             session.add(AlertHistory(
                 source=data['source'],
