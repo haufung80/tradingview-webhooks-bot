@@ -54,6 +54,26 @@ def add_alert_history(data):
         ))
         session.commit()
 
+
+def add_order_history(session, strategy, exchange_symbol, order, formatted_amount, data):
+    session.add(OrderHistory(
+        order_id=order['info']['orderId'],
+        strategy_id=data['strategy_id'],
+        source_symbol=data['symbol'],
+        exchange_symbol=exchange_symbol,
+        action=data['action'],
+        order_price=data['price'],
+        order_amt=formatted_amount,
+        active=True,
+        position_size=float(data['price']) * float(formatted_amount) / strategy.fund,
+        position_fund=float(data['price']) * float(formatted_amount),
+        total_fund=strategy.fund,
+        exchange=data['exchange'],
+        order_payload_1=str(order)
+    ))
+    session.commit()
+
+
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -86,22 +106,8 @@ class BybitOrderExecute(Action):
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
             if data['action'] == 'buy' and not strategy.active_order:
-                order, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data)
-                session.add(OrderHistory(
-                    order_id=order['info']['orderId'],
-                    strategy_id=data['strategy_id'],
-                    source_symbol=data['symbol'],
-                    exchange_symbol=exchange_symbol,
-                    action=data['action'],
-                    order_price=data['price'],
-                    order_amt=formatted_amount,
-                    active=True,
-                    position_size=float(data['price']) * float(formatted_amount) / strategy.fund,
-                    position_fund=float(data['price']) * float(formatted_amount),
-                    total_fund=strategy.fund,
-                    exchange=data['exchange'],
-                    order_payload_1=str(order)
-                ))
+                exc_order_rec, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data)
+                add_order_history(session, strategy, exchange_symbol, exc_order_rec, formatted_amount, data)
                 strategy.active_order = True
                 session.commit()
             elif data['action'] == 'sell' and strategy.active_order:
