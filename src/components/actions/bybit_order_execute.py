@@ -54,7 +54,6 @@ def add_alert_history(data):
         ))
         session.commit()
 
-
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -73,6 +72,13 @@ class BybitOrderExecute(Action):
         self.exchange.check_required_credentials()  # raises AuthenticationError
         markets = self.exchange.load_markets()
 
+    def send_limit_order(self, strategy, exchange_symbol, data):
+        amount = (strategy.fund * strategy.position_size) / float(data['price'])
+        formatted_amount = self.exchange.amount_to_precision(exchange_symbol, amount)
+        order = self.exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
+                                                 data['price'])
+        return order, formatted_amount
+
     def place_order(self, data):
         exchange_symbol = symbol_translate(data['symbol'])
         add_alert_history(data)
@@ -80,10 +86,7 @@ class BybitOrderExecute(Action):
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
             if data['action'] == 'buy' and not strategy.active_order:
-                amount = (strategy.fund * strategy.position_size) / float(data['price'])
-                formatted_amount = self.exchange.amount_to_precision(exchange_symbol, amount)
-                order = self.exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
-                                                         data['price'])
+                order, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data)
                 session.add(OrderHistory(
                     order_id=order['info']['orderId'],
                     strategy_id=data['strategy_id'],
@@ -99,7 +102,6 @@ class BybitOrderExecute(Action):
                     exchange=data['exchange'],
                     order_payload_1=str(order)
                 ))
-
                 strategy.active_order = True
                 session.commit()
             elif data['action'] == 'sell' and strategy.active_order:
