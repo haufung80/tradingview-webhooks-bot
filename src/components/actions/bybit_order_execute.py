@@ -55,7 +55,7 @@ def add_alert_history(data):
         session.commit()
 
 
-def add_order_history(session, strategy, exchange_symbol, order, formatted_amount, data):
+def add_limit_order_history(session, strategy, exchange_symbol, order, formatted_amount, data):
     session.add(OrderHistory(
         order_id=order['info']['orderId'],
         strategy_id=data['strategy_id'],
@@ -107,7 +107,7 @@ class BybitOrderExecute(Action):
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
             if data['action'] == 'buy' and not strategy.active_order:
                 exc_order_rec, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data)
-                add_order_history(session, strategy, exchange_symbol, exc_order_rec, formatted_amount, data)
+                add_limit_order_history(session, strategy, exchange_symbol, exc_order_rec, formatted_amount, data)
                 strategy.active_order = True
                 session.commit()
             elif data['action'] == 'sell' and strategy.active_order:
