@@ -40,6 +40,21 @@ def symbol_translate(symbol):
         return 'LINKUSDT'
 
 
+def add_alert_history(data):
+    with Session(engine) as session:
+        session.add(AlertHistory(
+            source=data['source'],
+            message_payload=str(data),
+            strategy_id=data['strategy_id'],
+            timestamp=pytz.timezone('UTC').localize(datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%SZ')),
+            symbol=data['symbol'],
+            exchange=data['exchange'],
+            action=data['action'],
+            price=data['price'],
+        ))
+        session.commit()
+
+
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -60,18 +75,7 @@ class BybitOrderExecute(Action):
 
     def place_order(self, data):
         exchange_symbol = symbol_translate(data['symbol'])
-        with Session(engine) as session:
-            session.add(AlertHistory(
-                source=data['source'],
-                message_payload=str(data),
-                strategy_id=data['strategy_id'],
-                timestamp=pytz.timezone('UTC').localize(datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%SZ')),
-                symbol=data['symbol'],
-                exchange=data['exchange'],
-                action=data['action'],
-                price=data['price'],
-            ))
-            session.commit()
+        add_alert_history(data)
 
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
