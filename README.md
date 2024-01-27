@@ -142,12 +142,6 @@ action:link FutuOrderExecute FutuWebhook
 
 reference: https://dev.to/chrisjryan/database-migration-with-python-3gmg
 
-step 1: modify ./src/model/model.py
-
-step 2: alembic revision --autogenerate -m "commit message"
-
-step 3: alembic upgrade head
-
 ### Order Execution Logic
 
 #### Open position:
@@ -169,5 +163,44 @@ if the order is filled:
 if the order is partially filled:
 
 1. cancel the order, create order history
-
 2. create selling order, get selling order execution detail, create order history
+
+### Deployment
+
+#### Strategy deployment
+
+1. export the table from production to /strategy_backup/strategy_{yyyymmdd}.csv
+2. pull and make change in local for same files
+3. (run SQLAlchemy ORM Migration if there is schema change)
+4. push to prod
+5. run command
+
+```bash
+psql postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
+delete from strategy \g
+\copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_20240126.csv' delimiter ',' CSV HEADER;
+```
+
+#### Code deployment
+
+1. push change to prod
+2. kill the cmd and run startup.sh
+
+#### DB schema deployment
+
+1. modify ./src/model/model.py
+2. generate a change file
+
+```bash
+alembic revision --autogenerate -m "commit message"
+```
+
+4. (PLEASE CHECK THE CHANGE FILE BEFORE PROCEED)
+5. update database
+
+```bash
+update database alembic upgrade head
+```
+
+7. push change to prod
+8. kill the cmd and run startup.sh
