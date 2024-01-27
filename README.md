@@ -199,7 +199,7 @@ alembic revision --autogenerate -m "commit message"
 5. update database
 
 ```bash
-update database alembic upgrade head
+alembic upgrade head
 ```
 
 7. push change to prod
