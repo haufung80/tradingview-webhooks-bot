@@ -24,14 +24,16 @@ def symbol_translate(symbol):
         return 'BTCUSDT'
     elif symbol == 'SOLUSDT.P':
         return 'SOLUSDT'
-    elif symbol == 'INJUSDT.P':
-        return 'INJUSDT'
     elif symbol == 'CAKEUSDT.P':
         return 'CAKEUSDT'
     elif symbol == 'AVAXUSDT.P':
         return 'AVAXUSDT'
-    elif symbol == 'WBTCUSDT':
-        return 'WBTCUSDT'
+    elif symbol == 'MATICUSDT.P':
+        return 'MATICUSDT'
+    elif symbol == 'BNBUSDT.P':
+        return 'BNBUSDT'
+    elif symbol == 'EGLDUSDT.P':
+        return 'EGLDUSDT'
 
 
 def add_alert_history(data):
