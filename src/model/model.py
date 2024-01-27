@@ -81,3 +81,4 @@ class Strategy(Base, BaseMixin):
     fund = Column(Float())
     expiry_date = Column(DateTime(timezone=True))
     direction = Column(String(10))
+    active = Column(Boolean())
