@@ -22,22 +22,16 @@ from src.model.model import *
 def symbol_translate(symbol):
     if symbol == 'BTCUSDT.P':
         return 'BTCUSDT'
-    elif symbol == 'ETHUSDT.P':
-        return 'ETHUSDT'
     elif symbol == 'SOLUSDT.P':
         return 'SOLUSDT'
     elif symbol == 'INJUSDT.P':
         return 'INJUSDT'
-    elif symbol == 'CAKEUSDT':
+    elif symbol == 'CAKEUSDT.P':
         return 'CAKEUSDT'
     elif symbol == 'AVAXUSDT.P':
         return 'AVAXUSDT'
-    elif symbol == 'VETUSDT.P':
-        return 'VETUSDT'
-    elif symbol == 'RNDRUSDT.P':
-        return 'RNDRUSDT'
-    elif symbol == 'LINKUSDT.P':
-        return 'LINKUSDT'
+    elif symbol == 'WBTCUSDT':
+        return 'WBTCUSDT'
 
 
 def add_alert_history(data):
@@ -132,12 +126,11 @@ class BybitOrderExecute(Action):
         return order, formatted_amount
 
     def place_order(self, data):
-        exchange_symbol = symbol_translate(data['symbol'])
         add_alert_history(data)
-
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
             if strategy.active:
+                exchange_symbol = symbol_translate(data['symbol'])
                 if data['action'] == 'buy' and not strategy.active_order:
                     exc_order_rec, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data)
                     add_limit_order_history(session, strategy, exchange_symbol, exc_order_rec, formatted_amount, data)
