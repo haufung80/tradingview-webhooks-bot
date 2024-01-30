@@ -34,6 +34,12 @@ def symbol_translate(symbol):
         return 'BNBUSDT'
     elif symbol == 'EGLDUSDT.P':
         return 'EGLDUSDT'
+    elif symbol == 'FXSUSDT.P':
+        return 'FXSUSDT'
+    elif symbol == 'WEMIXUSDT':
+        return 'WEMIXUSDT'
+    elif symbol == 'WBTCUSDT':
+        return 'WBTCUSDT'
 
 
 def add_alert_history(data):
@@ -112,19 +118,28 @@ class BybitOrderExecute(Action):
         'secret': API_SECRET
     })
 
+    API_KEY_PERSONAL = config['BybitSettings']['key_personal']
+    API_SECRET_PERSONAL = config['BybitSettings']['secret_personal']
+    per_exchange = ccxt.bybit({
+        'apiKey': API_KEY_PERSONAL,
+        'secret': API_SECRET_PERSONAL
+    })
+
     if config['BybitSettings']['set_sandbox_mode'] == 'True':
+        per_exchange.set_sandbox_mode(True)
         exchange.set_sandbox_mode(True)
 
     def __init__(self):
         super().__init__()
         self.exchange.check_required_credentials()  # raises AuthenticationError
+        self.per_exchange.check_required_credentials()  # raises AuthenticationError
         markets = self.exchange.load_markets()
 
-    def send_limit_order(self, strategy, exchange_symbol, data):
+    def send_limit_order(self, strategy, exchange_symbol, data, exchange):
         amount = (strategy.fund * strategy.position_size) / float(data['price'])
-        formatted_amount = self.exchange.amount_to_precision(exchange_symbol, amount)
-        order = self.exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
-                                                 data['price'])
+        formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+        order = exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
+                                            data['price'])
         return order, formatted_amount
 
     def place_order(self, data):
@@ -132,20 +147,24 @@ class BybitOrderExecute(Action):
         with Session(engine) as session:
             strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
             if strategy.active:
+                if strategy.personal_acc:
+                    exchange = self.per_exchange
+                else:
+                    exchange = self.exchange
                 exchange_symbol = symbol_translate(data['symbol'])
                 if data['action'] == 'buy' and not strategy.active_order:
-                    exc_order_rec, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data)
+                    exc_order_rec, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data, exchange)
                     add_limit_order_history(session, strategy, exchange_symbol, exc_order_rec, formatted_amount, data)
                     strategy.active_order = True
                     session.commit()
                 elif data['action'] == 'sell' and strategy.active_order:
                     existing_order_hist = session.execute(select(OrderHistory)
-                                                          .where(OrderHistory.strategy_id == data['strategy_id'])
-                                                          .where(OrderHistory.exchange == data['exchange'])
+                        .where(OrderHistory.strategy_id == data['strategy_id'])
+                        .where(OrderHistory.exchange == data['exchange'])
                                                           .order_by(OrderHistory.created_at.desc()).limit(
                         1)).scalar_one()
                     if existing_order_hist.active:
-                        existing_pos_order = self.exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
+                        existing_pos_order = exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
 
                         existing_order_hist.order_status = existing_pos_order['info']['orderStatus']
                         existing_order_hist.open_timestamp = existing_pos_order['info']['createdTime']
@@ -171,18 +190,18 @@ class BybitOrderExecute(Action):
 
                         if existing_pos_order['info']['orderStatus'] == 'New' or existing_pos_order['info'][
                             'orderStatus'] == 'PartiallyFilled':
-                            order_1 = self.exchange.cancel_order(existing_order_hist.order_id, exchange_symbol)
-                            order_2 = self.exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
+                            order_1 = exchange.cancel_order(existing_order_hist.order_id, exchange_symbol)
+                            order_2 = exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
                             existing_order_hist.order_payload_2 = str(order_2)  # overriding above
                             existing_order_hist.order_status = order_2['info']['orderStatus']
                             existing_order_hist.active = False
 
                         if existing_pos_order['info']['orderStatus'] == 'Filled' or existing_pos_order['info'][
                             'orderStatus'] == 'PartiallyFilled':
-                            open_mkt_order = self.exchange.create_market_order(exchange_symbol, data['action'],
-                                                                               existing_order_hist.filled_amt)
-                            closed_mkt_order = self.exchange.fetch_order(open_mkt_order['info']['orderId'],
-                                                                         exchange_symbol)
+                            open_mkt_order = exchange.create_market_order(exchange_symbol, data['action'],
+                                                                          existing_order_hist.filled_amt)
+                            closed_mkt_order = exchange.fetch_order(open_mkt_order['info']['orderId'],
+                                                                    exchange_symbol)
                             fund_diff = float(
                                 closed_mkt_order['info']['cumExecValue']) - existing_order_hist.exec_value - float(
                                 closed_mkt_order['info']['cumExecFee'])
