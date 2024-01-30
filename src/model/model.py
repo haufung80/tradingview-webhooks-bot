@@ -82,3 +82,4 @@ class Strategy(Base, BaseMixin):
     expiry_date = Column(DateTime(timezone=True))
     direction = Column(String(10))
     active = Column(Boolean())
+    personal_acc = Column(Boolean())
