@@ -176,9 +176,9 @@ if the order is partially filled:
 5. run command
 
 ```bash
-psql postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
-delete from strategy \g
-\copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_20240126.csv' delimiter ',' CSV HEADER;
+psql 'postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
+delete from strategy; \g
+\copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_ddddmmyy.csv' delimiter ',' CSV HEADER;
 ```
 
 #### Code deployment
