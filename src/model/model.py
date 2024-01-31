@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, func, String, Float, Boolean, REAL, ForeignKey
+from sqlalchemy import Column, DateTime, func, String, Float, Boolean, REAL
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -84,6 +84,6 @@ class Strategy(Base, BaseMixin):
 
 class Strategy_Management(Base, BaseMixin):
     __tablename__ = 'strategy_management'
-    strategy_id = Column(String(50), ForeignKey("strategy.strategy_id"), unique=True)
+    strategy_id = Column(String(50), unique=True)
     active_order = Column(Boolean())
     fund = Column(Float())

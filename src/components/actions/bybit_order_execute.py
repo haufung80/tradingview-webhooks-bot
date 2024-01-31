@@ -147,7 +147,8 @@ class BybitOrderExecute(Action):
         add_alert_history(data)
         with Session(engine) as session:
             [(strategy, strategy_mgmt)] = session.execute(
-                select(Strategy, Strategy_Management).join(Strategy_Management).where(
+                select(Strategy, Strategy_Management).join(Strategy_Management,
+                                                           Strategy_Management.strategy_id == Strategy.strategy_id).where(
                     Strategy.strategy_id == data['strategy_id'])).all()
             if strategy.active:
                 if strategy.personal_acc:
