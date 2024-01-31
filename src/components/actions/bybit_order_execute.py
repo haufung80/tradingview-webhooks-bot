@@ -40,6 +40,10 @@ def symbol_translate(symbol):
         return 'WEMIXUSDT'
     elif symbol == 'WBTCUSDT':
         return 'WBTCUSDT'
+    elif symbol == 'STXUSDT.P':
+        return 'STXUSDT'
+    elif symbol == 'FLOWUSDT.P':
+        return 'FLOWUSDT'
 
 
 def add_alert_history(data):
