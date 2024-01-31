@@ -57,7 +57,7 @@ def add_alert_history(data):
         session.commit()
 
 
-def add_limit_order_history(session, strategy, exchange_symbol, order, formatted_amount, data):
+def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount, data):
     session.add(OrderHistory(
         order_id=order['info']['orderId'],
         strategy_id=data['strategy_id'],
@@ -67,9 +67,9 @@ def add_limit_order_history(session, strategy, exchange_symbol, order, formatted
         order_price=data['price'],
         order_amt=formatted_amount,
         active=True,
-        position_size=float(data['price']) * float(formatted_amount) / strategy.fund,
+        position_size=float(data['price']) * float(formatted_amount) / strategy_mgmt.fund,
         position_fund=float(data['price']) * float(formatted_amount),
-        total_fund=strategy.fund,
+        total_fund=strategy_mgmt.fund,
         exchange=data['exchange'],
         order_payload_1=str(order)
     ))
@@ -135,8 +135,8 @@ class BybitOrderExecute(Action):
         self.per_exchange.check_required_credentials()  # raises AuthenticationError
         markets = self.exchange.load_markets()
 
-    def send_limit_order(self, strategy, exchange_symbol, data, exchange):
-        amount = (strategy.fund * strategy.position_size) / float(data['price'])
+    def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
+        amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
         formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
         order = exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
                                             data['price'])
@@ -145,23 +145,27 @@ class BybitOrderExecute(Action):
     def place_order(self, data):
         add_alert_history(data)
         with Session(engine) as session:
-            strategy = session.execute(select(Strategy).where(Strategy.strategy_id == data['strategy_id'])).scalar_one()
+            [(strategy, strategy_mgmt)] = session.execute(
+                select(Strategy, Strategy_Management).join(Strategy_Management).where(
+                    Strategy.strategy_id == data['strategy_id'])).all()
             if strategy.active:
                 if strategy.personal_acc:
                     exchange = self.per_exchange
                 else:
                     exchange = self.exchange
                 exchange_symbol = symbol_translate(data['symbol'])
-                if data['action'] == 'buy' and not strategy.active_order:
-                    exc_order_rec, formatted_amount = self.send_limit_order(strategy, exchange_symbol, data, exchange)
-                    add_limit_order_history(session, strategy, exchange_symbol, exc_order_rec, formatted_amount, data)
-                    strategy.active_order = True
+                if data['action'] == 'buy' and not strategy_mgmt.active_order:
+                    exc_order_rec, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
+                                                                            data, exchange)
+                    add_limit_order_history(session, strategy_mgmt, exchange_symbol, exc_order_rec, formatted_amount,
+                                            data)
+                    strategy_mgmt.active_order = True
                     session.commit()
-                elif data['action'] == 'sell' and strategy.active_order:
+                elif data['action'] == 'sell' and strategy_mgmt.active_order:
                     existing_order_hist = session.execute(select(OrderHistory)
                         .where(OrderHistory.strategy_id == data['strategy_id'])
                         .where(OrderHistory.exchange == data['exchange'])
-                                                          .order_by(OrderHistory.created_at.desc()).limit(
+                        .order_by(OrderHistory.created_at.desc()).limit(
                         1)).scalar_one()
                     if existing_order_hist.active:
                         existing_pos_order = exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
@@ -210,9 +214,9 @@ class BybitOrderExecute(Action):
                                                      fund_diff,
                                                      total_fund, existing_order_hist.filled_amt,
                                                      data)
-                            strategy.fund = total_fund
+                            strategy_mgmt.fund = total_fund
 
-                        strategy.active_order = False
+                        strategy_mgmt.active_order = False
                         session.commit()
 
     def run(self, *args, **kwargs):

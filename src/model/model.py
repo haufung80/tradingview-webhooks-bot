@@ -1,5 +1,4 @@
-from sqlalchemy import Column, DateTime, func
-from sqlalchemy import String, Float, Boolean, REAL
+from sqlalchemy import Column, DateTime, func, String, Float, Boolean, REAL, ForeignKey
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -77,9 +76,14 @@ class Strategy(Base, BaseMixin):
     value_3 = Column(String(50))
     parameter_4 = Column(String(50))
     value_4 = Column(String(50))
-    active_order = Column(Boolean())
-    fund = Column(Float())
     expiry_date = Column(DateTime(timezone=True))
     direction = Column(String(10))
     active = Column(Boolean())
     personal_acc = Column(Boolean())
+
+
+class Strategy_Management(Base, BaseMixin):
+    __tablename__ = 'strategy_management'
+    strategy_id = Column(String(50), ForeignKey("strategy.strategy_id"), unique=True)
+    active_order = Column(Boolean())
+    fund = Column(Float())
