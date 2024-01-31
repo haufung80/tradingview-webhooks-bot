@@ -138,6 +138,7 @@ class BybitOrderExecute(Action):
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
         amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
         formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+        print(formatted_amount)
         order = exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
                                             data['price'])
         return order, formatted_amount
@@ -154,14 +155,16 @@ class BybitOrderExecute(Action):
                 else:
                     exchange = self.exchange
                 exchange_symbol = symbol_translate(data['symbol'])
-                if data['action'] == 'buy' and not strategy_mgmt.active_order:
+                if ((strategy.direction == 'long' and data['action'] == 'buy') or (
+                        strategy.direction == 'short' and data['action'] == 'sell')) and not strategy_mgmt.active_order:
                     exc_order_rec, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
                                                                             data, exchange)
                     add_limit_order_history(session, strategy_mgmt, exchange_symbol, exc_order_rec, formatted_amount,
                                             data)
                     strategy_mgmt.active_order = True
                     session.commit()
-                elif data['action'] == 'sell' and strategy_mgmt.active_order:
+                elif ((strategy.direction == 'long' and data['action'] == 'sell') or (
+                        strategy.direction == 'short' and data['action'] == 'buy')) and strategy_mgmt.active_order:
                     existing_order_hist = session.execute(select(OrderHistory)
                         .where(OrderHistory.strategy_id == data['strategy_id'])
                         .where(OrderHistory.exchange == data['exchange'])
