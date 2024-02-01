@@ -179,7 +179,7 @@ if the order is partially filled:
 psql 'postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
 delete from strategy; \g
 \copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
-insert into strategy_management (select strategy_id, false,  100 from strategy where strategy_id not in (select strategy_id from strategy_management)); \g
+insert into strategy_management (select strategy_id, false,  100 from strategy where strategy_id not in (select strategy_id from strategy_management));delete from strategy_management where strategy_id not in (select strategy_id from strategy); \g
 ```
 
 #### Code deployment
