@@ -205,3 +205,21 @@ alembic upgrade head
 
 7. push change to prod
 8. kill the cmd and run startup.sh
+
+### Fund deployment
+
+#### How much should I put in my copy trade acc?
+
+```bash
+select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id
+and personal_acc is not true 
+and active is true)
+```
+
+#### How much should I put in my personal trade acc?
+
+```bash
+select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id
+and personal_acc is true 
+and active is true)
+```
