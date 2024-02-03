@@ -76,6 +76,8 @@ class Strategy(Base, BaseMixin):
     value_3 = Column(String(50))
     parameter_4 = Column(String(50))
     value_4 = Column(String(50))
+    parameter_5 = Column(String(50))
+    value_5 = Column(String(50))
     expiry_date = Column(DateTime(timezone=True))
     direction = Column(String(10))
     active = Column(Boolean())
