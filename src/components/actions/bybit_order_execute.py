@@ -46,6 +46,14 @@ def symbol_translate(symbol):
         return 'RNDRUSDT'
     elif symbol == 'ADAUSDT.P':
         return 'ADAUSDT'
+    elif symbol == 'XRPUSDT.P':
+        return 'XRPUSDT'
+    elif symbol == 'INJUSDT.P':
+        return 'INJUSDT'
+    elif symbol == 'SHIB1000USDT.P':
+        return 'SHIB1000USDT'
+    elif symbol == 'DOGEUSDT.P':
+        return 'DOGEUSDT'
 
 
 def add_alert_history(data):
