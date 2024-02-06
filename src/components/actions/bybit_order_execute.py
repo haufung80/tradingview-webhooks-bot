@@ -20,40 +20,10 @@ from src.model.model import *
 
 
 def symbol_translate(symbol):
-    if symbol == 'BTCUSDT.P':
-        return 'BTCUSDT'
-    elif symbol == 'SOLUSDT.P':
-        return 'SOLUSDT'
-    elif symbol == 'CAKEUSDT.P':
-        return 'CAKEUSDT'
-    elif symbol == 'AVAXUSDT.P':
-        return 'AVAXUSDT'
-    elif symbol == 'MATICUSDT.P':
-        return 'MATICUSDT'
-    elif symbol == 'BNBUSDT.P':
-        return 'BNBUSDT'
-    elif symbol == 'EGLDUSDT.P':
-        return 'EGLDUSDT'
-    elif symbol == 'FXSUSDT.P':
-        return 'FXSUSDT'
-    elif symbol == 'WEMIXUSDT':
-        return 'WEMIXUSDT'
-    elif symbol == 'WBTCUSDT':
-        return 'WBTCUSDT'
-    elif symbol == 'FLOWUSDT.P':
-        return 'FLOWUSDT'
-    elif symbol == 'RNDRUSDT.P':
-        return 'RNDRUSDT'
-    elif symbol == 'ADAUSDT.P':
-        return 'ADAUSDT'
-    elif symbol == 'XRPUSDT.P':
-        return 'XRPUSDT'
-    elif symbol == 'INJUSDT.P':
-        return 'INJUSDT'
-    elif symbol == 'SHIB1000USDT.P':
+    if symbol == 'SHIB1000USDT.P':
         return 'SHIB1000USDT'
-    elif symbol == 'DOGEUSDT.P':
-        return 'DOGEUSDT'
+    else:
+        return symbol.replace('USDT.P', 'USDT')
 
 
 def add_alert_history(data):
