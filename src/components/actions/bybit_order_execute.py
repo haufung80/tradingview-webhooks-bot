@@ -122,6 +122,7 @@ class BybitOrderExecute(Action):
         self.exchange.check_required_credentials()  # raises AuthenticationError
         self.per_exchange.check_required_credentials()  # raises AuthenticationError
         markets = self.exchange.load_markets()
+        markets1 = self.per_exchange.load_markets()
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
         amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
