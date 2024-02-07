@@ -199,9 +199,15 @@ class BybitOrderExecute(Action):
                                                                           existing_order_hist.filled_amt)
                             closed_mkt_order = exchange.fetch_order(open_mkt_order['info']['orderId'],
                                                                     exchange_symbol)
-                            fund_diff = float(
-                                closed_mkt_order['info']['cumExecValue']) - existing_order_hist.exec_value - float(
-                                closed_mkt_order['info']['cumExecFee'])
+                            if strategy.direction == 'long':
+                                fund_diff = float(
+                                    closed_mkt_order['info']['cumExecValue']) - existing_order_hist.exec_value - float(
+                                    closed_mkt_order['info']['cumExecFee'])
+                            else:
+                                fund_diff = float(
+                                    existing_order_hist.exec_value - closed_mkt_order['info']['cumExecValue']) - float(
+                                    closed_mkt_order['info']['cumExecFee'])
+
                             total_fund = existing_order_hist.total_fund + fund_diff
                             add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
                                                      fund_diff,
