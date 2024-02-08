@@ -26,6 +26,8 @@ def symbol_translate(symbol):
         return 'WEMIXUSDT'
     elif symbol == 'WBTCUSDT':
         return 'WBTCUSDT'
+    elif symbol == 'CAKEUSDT':
+        return 'CAKEUSDT'
     else:
         return symbol.replace('USDT.P', 'USDT')
 
@@ -127,7 +129,6 @@ class BybitOrderExecute(Action):
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
         amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
         formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-        print(formatted_amount)
         order = exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
                                             data['price'])
         return order, formatted_amount
