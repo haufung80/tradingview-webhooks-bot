@@ -128,7 +128,12 @@ class BybitOrderExecute(Action):
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
         amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
-        formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+        if exchange_symbol == 'BTCUSDT' and amount < 0.001:
+            formatted_amount = 0.001
+        elif exchange_symbol == 'ETHUSDT' and amount < 0.01:
+            formatted_amount = 0.01
+        else:
+            formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
         order = exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
                                             data['price'])
         return order, formatted_amount
