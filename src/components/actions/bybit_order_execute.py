@@ -103,28 +103,28 @@ class BybitOrderExecute(Action):
     config.read('config.ini')
     API_KEY = config['BybitSettings']['key']
     API_SECRET = config['BybitSettings']['secret']
-    exchange = ccxt.bybit({
+    bybit_exchange = ccxt.bybit({
         'apiKey': API_KEY,
         'secret': API_SECRET
     })
 
     API_KEY_PERSONAL = config['BybitSettings']['key_personal']
     API_SECRET_PERSONAL = config['BybitSettings']['secret_personal']
-    per_exchange = ccxt.bybit({
+    bybit_exchange_per = ccxt.bybit({
         'apiKey': API_KEY_PERSONAL,
         'secret': API_SECRET_PERSONAL
     })
 
     if config['BybitSettings']['set_sandbox_mode'] == 'True':
-        per_exchange.set_sandbox_mode(True)
-        exchange.set_sandbox_mode(True)
+        bybit_exchange.set_sandbox_mode(True)
+        bybit_exchange_per.set_sandbox_mode(True)
 
     def __init__(self):
         super().__init__()
-        self.exchange.check_required_credentials()  # raises AuthenticationError
-        self.per_exchange.check_required_credentials()  # raises AuthenticationError
-        markets = self.exchange.load_markets()
-        markets1 = self.per_exchange.load_markets()
+        self.bybit_exchange.check_required_credentials()  # raises AuthenticationError
+        self.bybit_exchange_per.check_required_credentials()  # raises AuthenticationError
+        markets = self.bybit_exchange.load_markets()
+        markets1 = self.bybit_exchange_per.load_markets()
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
         amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
@@ -147,9 +147,9 @@ class BybitOrderExecute(Action):
                     Strategy.strategy_id == data['strategy_id'])).all()
             if strategy.active:
                 if strategy.personal_acc:
-                    exchange = self.per_exchange
+                    exchange = self.bybit_exchange_per
                 else:
-                    exchange = self.exchange
+                    exchange = self.bybit_exchange
                 exchange_symbol = symbol_translate(data['symbol'])
                 if ((strategy.direction == 'long' and data['action'] == 'buy') or (
                         strategy.direction == 'short' and data['action'] == 'sell')) and not strategy_mgmt.active_order:
