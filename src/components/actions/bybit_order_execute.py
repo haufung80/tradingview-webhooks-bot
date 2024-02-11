@@ -46,37 +46,37 @@ def add_alert_history(alert: TradingViewAlert, payload):
         session.commit()
 
 
-def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount, data):
+def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount, alrt: TradingViewAlert):
     session.add(OrderHistory(
         order_id=order['info']['orderId'],
-        strategy_id=data['strategy_id'],
-        source_symbol=data['symbol'],
+        strategy_id=alrt.strategy_id,
+        source_symbol=alrt.symbol,
         exchange_symbol=exchange_symbol,
-        action=data['action'],
-        order_price=data['price'],
+        action=alrt.action,
+        order_price=alrt.price,
         order_amt=formatted_amount,
         active=True,
-        position_size=float(data['price']) * float(formatted_amount) / strategy_mgmt.fund,
-        position_fund=float(data['price']) * float(formatted_amount),
+        position_size=alrt.price * float(formatted_amount) / strategy_mgmt.fund,
+        position_fund=alrt.price * float(formatted_amount),
         total_fund=strategy_mgmt.fund,
-        exchange=data['exchange'],
+        exchange=alrt.exchange,
         order_payload_1=str(order)
     ))
     session.commit()
 
 
 def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr, exchange_symbol, fund_diff, total_fund, filled_amt,
-                             data):
+                             alrt: TradingViewAlert):
     session.add(OrderHistory(
         order_id=opn_mkt_odr['info']['orderId'],
-        strategy_id=data['strategy_id'],
-        source_symbol=data['symbol'],
+        strategy_id=alrt.strategy_id,
+        source_symbol=alrt.symbol,
         exchange_symbol=exchange_symbol,
-        action=data['action'],
-        order_price=data['price'],
+        action=alrt.action,
+        order_price=alrt.price,
         order_amt=filled_amt,
         active=False,
-        exchange=data['exchange'],
+        exchange=alrt.exchange,
         order_status=cls_mkt_odr['info']['orderStatus'],
         avg_price=float(cls_mkt_odr['info']['avgPrice']),
         exec_value=float(cls_mkt_odr['info']['cumExecValue']),
@@ -135,16 +135,16 @@ class BybitOrderExecute(Action):
         markets = self.bybit_exchange.load_markets()
         markets1 = self.bybit_exchange_per.load_markets()
 
-    def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, data, exchange):
-        amount = (strategy_mgmt.fund * strategy.position_size) / float(data['price'])
+    def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange):
+        amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
         if exchange_symbol == 'BTCUSDT' and amount < 0.001:
             formatted_amount = 0.001
         elif exchange_symbol == 'ETHUSDT' and amount < 0.01:
             formatted_amount = 0.01
         else:
             formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-        order = exchange.create_limit_order(exchange_symbol, data['action'], formatted_amount,
-                                            data['price'])
+        order = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
+                                            alrt.price)
         return order, formatted_amount
 
     def place_order(self, data):
@@ -167,9 +167,9 @@ class BybitOrderExecute(Action):
                 if ((strategy.direction == 'long' and tv_alrt.action == 'buy') or (
                         strategy.direction == 'short' and tv_alrt.action == 'sell')) and not strategy_mgmt.active_order:
                     exc_order_rec, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
-                                                                            data, exchange)
+                                                                            tv_alrt, exchange)
                     add_limit_order_history(session, strategy_mgmt, exchange_symbol, exc_order_rec, formatted_amount,
-                                            data)
+                                            tv_alrt)
                     strategy_mgmt.active_order = True
                     session.commit()
                 elif ((strategy.direction == 'long' and tv_alrt.action == 'sell') or (
@@ -231,7 +231,7 @@ class BybitOrderExecute(Action):
                             add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
                                                      fund_diff,
                                                      total_fund, existing_order_hist.filled_amt,
-                                                     data)
+                                                     tv_alrt)
                             strategy_mgmt.fund = total_fund
 
                         strategy_mgmt.active_order = False
