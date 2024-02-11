@@ -84,7 +84,7 @@ class Strategy(Base, BaseMixin):
     personal_acc = Column(Boolean())
 
 
-class Strategy_Management(Base, BaseMixin):
+class StrategyManagement(Base, BaseMixin):
     __tablename__ = 'strategy_management'
     strategy_id = Column(String(50), unique=True)
     active_order = Column(Boolean())
