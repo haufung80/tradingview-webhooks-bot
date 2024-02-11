@@ -1,10 +1,9 @@
 import configparser
+import json
 import os
 import sys
-from datetime import datetime
 
 import ccxt as ccxt
-import pytz
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -32,17 +31,17 @@ def symbol_translate(symbol):
         return symbol.replace('USDT.P', 'USDT')
 
 
-def add_alert_history(data):
+def add_alert_history(alert: TradingViewAlert, payload):
     with Session(engine) as session:
         session.add(AlertHistory(
-            source=data['source'],
-            message_payload=str(data),
-            strategy_id=data['strategy_id'],
-            timestamp=pytz.timezone('UTC').localize(datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%SZ')),
-            symbol=data['symbol'],
-            exchange=data['exchange'],
-            action=data['action'],
-            price=data['price'],
+            source=alert.source,
+            message_payload=payload,
+            strategy_id=alert.strategy_id,
+            timestamp=alert.get_date(),
+            symbol=alert.symbol,
+            exchange=alert.exchange,
+            action=alert.action,
+            price=alert.price
         ))
         session.commit()
 
@@ -98,14 +97,13 @@ def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr, exchange_symbol,
     session.commit()
 
 
-def is_duplicate_alert(data):
+def is_duplicate_alert(alert: TradingViewAlert):
     with Session(engine) as session:
         return len(session.execute(
             select(AlertHistory).where(
-                AlertHistory.timestamp == pytz.timezone('UTC').localize(
-                    datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%SZ')),
-                AlertHistory.strategy_id == data['strategy_id'],
-                AlertHistory.action == data['action'])
+                AlertHistory.timestamp == alert.get_date(),
+                AlertHistory.strategy_id == alert.strategy_id,
+                AlertHistory.action == alert.action)
         ).all()) > 0
 
 
@@ -150,34 +148,35 @@ class BybitOrderExecute(Action):
         return order, formatted_amount
 
     def place_order(self, data):
-        if is_duplicate_alert(data):
-            add_alert_history(data)
+        tv_alrt = TradingViewAlert(**json.loads(json.dumps(data)))
+        if is_duplicate_alert(tv_alrt):
+            add_alert_history(tv_alrt, str(data))
             return
-        add_alert_history(data)
+        add_alert_history(tv_alrt, str(data))
         with Session(engine) as session:
             [(strategy, strategy_mgmt)] = session.execute(
                 select(Strategy, StrategyManagement).join(StrategyManagement,
                                                           StrategyManagement.strategy_id == Strategy.strategy_id).where(
-                    Strategy.strategy_id == data['strategy_id'])).all()
+                    Strategy.strategy_id == tv_alrt.strategy_id)).all()
             if strategy.active:
                 if strategy.personal_acc:
                     exchange = self.bybit_exchange_per
                 else:
                     exchange = self.bybit_exchange
-                exchange_symbol = symbol_translate(data['symbol'])
-                if ((strategy.direction == 'long' and data['action'] == 'buy') or (
-                        strategy.direction == 'short' and data['action'] == 'sell')) and not strategy_mgmt.active_order:
+                exchange_symbol = symbol_translate(tv_alrt.symbol)
+                if ((strategy.direction == 'long' and tv_alrt.action == 'buy') or (
+                        strategy.direction == 'short' and tv_alrt.action == 'sell')) and not strategy_mgmt.active_order:
                     exc_order_rec, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
                                                                             data, exchange)
                     add_limit_order_history(session, strategy_mgmt, exchange_symbol, exc_order_rec, formatted_amount,
                                             data)
                     strategy_mgmt.active_order = True
                     session.commit()
-                elif ((strategy.direction == 'long' and data['action'] == 'sell') or (
-                        strategy.direction == 'short' and data['action'] == 'buy')) and strategy_mgmt.active_order:
+                elif ((strategy.direction == 'long' and tv_alrt.action == 'sell') or (
+                        strategy.direction == 'short' and tv_alrt.action == 'buy')) and strategy_mgmt.active_order:
                     existing_order_hist = session.execute(select(OrderHistory)
-                        .where(OrderHistory.strategy_id == data['strategy_id'])
-                        .where(OrderHistory.exchange == data['exchange'])
+                        .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                        .where(OrderHistory.exchange == tv_alrt.exchange)
                         .order_by(OrderHistory.created_at.desc()).limit(
                         1)).scalar_one()
                     if existing_order_hist.active:
@@ -215,7 +214,7 @@ class BybitOrderExecute(Action):
 
                         if existing_pos_order['info']['orderStatus'] == 'Filled' or existing_pos_order['info'][
                             'orderStatus'] == 'PartiallyFilled':
-                            open_mkt_order = exchange.create_market_order(exchange_symbol, data['action'],
+                            open_mkt_order = exchange.create_market_order(exchange_symbol, tv_alrt.action,
                                                                           existing_order_hist.filled_amt)
                             closed_mkt_order = exchange.fetch_order(open_mkt_order['info']['orderId'],
                                                                     exchange_symbol)

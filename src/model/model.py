@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+from datetime import datetime
+
+import pytz
 from sqlalchemy import Column, DateTime, func, String, Float, Boolean, REAL
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.ext.declarative import declarative_base
@@ -89,3 +93,27 @@ class StrategyManagement(Base, BaseMixin):
     strategy_id = Column(String(50), unique=True)
     active_order = Column(Boolean())
     fund = Column(Float())
+
+
+@dataclass
+class TradingViewAlert():
+    strategy_id: str
+    action: str
+    position_size: float
+    price: float
+    symbol: str
+    timestamp: str
+    exchange: str
+    source: str
+    noofcontracts: float
+    orderid: str
+    comment: str
+    alert_msg: str
+    market_position: str
+    market_position_size: float
+    prev_market_position: str
+    prev_market_position_size: float
+
+    def get_date(self):
+        return pytz.timezone('UTC').localize(
+            datetime.strptime(self.timestamp, '%Y-%m-%dT%H:%M:%SZ'))
