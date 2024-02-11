@@ -98,6 +98,17 @@ def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr, exchange_symbol,
     session.commit()
 
 
+def is_duplicate_alert(data):
+    with Session(engine) as session:
+        return len(session.execute(
+            select(AlertHistory).where(
+                AlertHistory.timestamp == pytz.timezone('UTC').localize(
+                    datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%SZ')),
+                AlertHistory.strategy_id == data['strategy_id'],
+                AlertHistory.action == data['action'])
+        ).all()) > 0
+
+
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -139,6 +150,9 @@ class BybitOrderExecute(Action):
         return order, formatted_amount
 
     def place_order(self, data):
+        if is_duplicate_alert(data):
+            add_alert_history(data)
+            return
         add_alert_history(data)
         with Session(engine) as session:
             [(strategy, strategy_mgmt)] = session.execute(
