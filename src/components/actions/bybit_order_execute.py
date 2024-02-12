@@ -19,9 +19,7 @@ from src.model.model import *
 
 
 def symbol_translate(symbol):
-    if symbol == 'SHIB1000USDT.P':
-        return 'SHIB1000USDT'
-    elif symbol == 'WEMIXUSDT':
+    if symbol == 'WEMIXUSDT':
         return 'WEMIXUSDT'
     elif symbol == 'WBTCUSDT':
         return 'WBTCUSDT'
