@@ -104,6 +104,7 @@ MACD_CROSSOVER_4H_ADA,0.25,slowLength,55,fastLength,40,atr_period,35,stop_range,
 MACD_CROSSOVER_4H_AVAX,0.15,slowLength,65,fastLength,20,atr_period,10,stop_range,4,147,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,AVAX,MACD_CROSSOVER_4H,,long,t,,signal_length,15
 MACD_CROSSOVER_4H_ARB,0.17,slowLength,25,fastLength,20,atr_period,15,stop_range,4,155,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,ARB,MACD_CROSSOVER_4H,,long,t,,signal_length,5
 MACD_CROSSOVER_4H_MKR,0.69,slowLength,85,fastLength,75,atr_period,10,stop_range,3,157,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,MKR,MACD_CROSSOVER_4H,,long,t,,signal_length,15
+MACD_CROSSOVER_SHORT_4H_ONE,0.35,slowLength,90,fastLength,85,atr_period,25,stop_range,4,174,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,ONE,MACD_CROSSOVER_SHORT_4H,,short,t,t,signal_length,20
 MACD_CROSSOVER_4H_LINK,0.62,slowLength,85,fastLength,10,atr_period,5,stop_range,3,148,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,LINK,MACD_CROSSOVER_4H,,long,t,,signal_length,10
 MACD_CROSSOVER_4H_MATIC,0.42,slowLength,85,fastLength,20,atr_period,5,stop_range,3,149,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,MATIC,MACD_CROSSOVER_4H,,long,t,,signal_length,10
 MACD_CROSSOVER_4H_ICP,0.13,slowLength,30,fastLength,10,atr_period,10,stop_range,2,150,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,ICP,MACD_CROSSOVER_4H,,long,t,,signal_length,5
@@ -120,3 +121,11 @@ MACD_CROSSOVER_4H_GMX,0.43,slowLength,30,fastLength,20,atr_period,40,stop_range,
 MACD_CROSSOVER_4H_OP,0.45,slowLength,60,fastLength,35,atr_period,15,stop_range,3,166,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,OP,MACD_CROSSOVER_4H,,long,t,,signal_length,5
 MACD_CROSSOVER_4H_IMX,0.19,slowLength,65,fastLength,10,atr_period,30,stop_range,4,167,2024-02-09 20:25:16.724563-05,2024-02-09 20:25:16.724563-05,IMX,MACD_CROSSOVER_4H,,long,t,,signal_length,5
 MACD_CROSSOVER_4H_VET,0.25,slowLength,85,fastLength,75,atr_period,10,stop_range,4,156,2024-02-09 20:21:08.172886-05,2024-02-09 20:21:08.172886-05,VET,MACD_CROSSOVER_4H,,long,t,t,signal_length,10
+MACD_CROSSOVER_SHORT_4H_BCH,0.65,slowLength,75,fastLength,30,atr_period,35,stop_range,3,168,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,BCH,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,10
+MACD_CROSSOVER_SHORT_4H_ETC,0.33,slowLength,90,fastLength,20,atr_period,5,stop_range,3,169,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,ETC,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,10
+MACD_CROSSOVER_SHORT_4H_FIL,0.33,slowLength,90,fastLength,85,atr_period,15,stop_range,2,170,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,FIL,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,5
+MACD_CROSSOVER_SHORT_4H_ENS,0.22,slowLength,70,fastLength,30,atr_period,10,stop_range,2,171,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,ENS,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,10
+MACD_CROSSOVER_SHORT_4H_ACH,0.63,slowLength,70,fastLength,50,atr_period,15,stop_range,3,172,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,ACH,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,20
+MACD_CROSSOVER_SHORT_4H_GMX,0.54,slowLength,40,fastLength,25,atr_period,40,stop_range,2,173,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,GMX,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,5
+MACD_CROSSOVER_SHORT_4H_SAND,0.49,slowLength,85,fastLength,75,atr_period,20,stop_range,3,175,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,SAND,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,20
+MACD_CROSSOVER_SHORT_4H_OP,0.41,slowLength,60,fastLength,50,atr_period,5,stop_range,2,176,2024-02-12 01:47:36.321201-05,2024-02-12 01:47:36.321201-05,OP,MACD_CROSSOVER_SHORT_4H,,short,t,,signal_length,15

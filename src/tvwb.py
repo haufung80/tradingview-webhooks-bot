@@ -22,10 +22,10 @@ def start(
             help='Determines whether the GUI should be served at the root path, or behind a unique key.',
         ),
         host: str = typer.Option(
-            default='0.0.0.0'
+            default='localhost'
         ),
         port: int = typer.Option(
-            default=80
+            default=5001
         )
 ):
     def clear_gui_key():
