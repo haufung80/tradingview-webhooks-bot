@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import pytz
+from pydantic import validate_arguments
 from sqlalchemy import Column, DateTime, func, String, Float, Boolean, REAL
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.ext.declarative import declarative_base
@@ -95,8 +96,16 @@ class StrategyManagement(Base, BaseMixin):
     fund = Column(Float())
 
 
+class OrderExecutionError(Base, BaseMixin):
+    __tablename__ = 'order_execution_error'
+    alert_id = Column(INTEGER(10))
+    error = Column(String())
+    error_stack = Column(String())
+
+
+@validate_arguments
 @dataclass
-class TradingViewAlert():
+class TradingViewAlert:
     strategy_id: str
     action: str
     position_size: float
