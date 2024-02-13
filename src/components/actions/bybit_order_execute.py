@@ -2,6 +2,7 @@ import configparser
 import json
 import os
 import sys
+import traceback
 
 import ccxt as ccxt
 from dotenv import load_dotenv
@@ -31,7 +32,7 @@ def symbol_translate(symbol):
 
 def add_alert_history(alert: TradingViewAlert, payload):
     with Session(engine) as session:
-        session.add(AlertHistory(
+        ah = AlertHistory(
             source=alert.source,
             message_payload=payload,
             strategy_id=alert.strategy_id,
@@ -40,9 +41,10 @@ def add_alert_history(alert: TradingViewAlert, payload):
             exchange=alert.exchange,
             action=alert.action,
             price=alert.price
-        ))
+        )
+        session.add(ah)
         session.commit()
-
+        return ah.id
 
 def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount, alrt: TradingViewAlert):
     session.add(OrderHistory(
@@ -145,12 +147,7 @@ class BybitOrderExecute(Action):
                                             alrt.price)
         return order, formatted_amount
 
-    def place_order(self, data):
-        tv_alrt = TradingViewAlert(**json.loads(json.dumps(data)))
-        if is_duplicate_alert(tv_alrt):
-            add_alert_history(tv_alrt, str(data))
-            return
-        add_alert_history(tv_alrt, str(data))
+    def place_order(self, tv_alrt):
         with Session(engine) as session:
             [(strategy, strategy_mgmt)] = session.execute(
                 select(Strategy, StrategyManagement).join(StrategyManagement,
@@ -239,4 +236,19 @@ class BybitOrderExecute(Action):
         super().run(*args, **kwargs)  # this is required
         print(self.name, '---> action has run!')
         data = self.validate_data()
-        self.place_order(data['data'])
+        tv_alrt = TradingViewAlert(**json.loads(json.dumps(data['data'])))
+        if is_duplicate_alert(tv_alrt):
+            _ = add_alert_history(tv_alrt, str(data))
+            return
+        alert_id = add_alert_history(tv_alrt, str(data))
+        try:
+            self.place_order(tv_alrt)
+        except Exception as e:
+            print(traceback.format_exc())
+            with Session(engine) as session:
+                session.add(OrderExecutionError(
+                    alert_id=alert_id,
+                    error=e.args,
+                    error_stack=traceback.format_exc()
+                ))
+                session.commit()
