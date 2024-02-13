@@ -159,16 +159,20 @@ class BybitOrderExecute(Action):
                 else:
                     exchange = self.bybit_exchange
                 exchange_symbol = symbol_translate(tv_alrt.symbol)
-                if ((strategy.direction == 'long' and tv_alrt.action == 'buy') or (
-                        strategy.direction == 'short' and tv_alrt.action == 'sell')) and not strategy_mgmt.active_order:
+                if (strategy.direction == 'long' and tv_alrt.action == 'buy') or (
+                        strategy.direction == 'short' and tv_alrt.action == 'sell'):
+                    if strategy_mgmt.active_order:
+                        raise Exception("There are still active order when opening position")
                     exc_order_rec, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
                                                                             tv_alrt, exchange)
                     add_limit_order_history(session, strategy_mgmt, exchange_symbol, exc_order_rec, formatted_amount,
                                             tv_alrt)
                     strategy_mgmt.active_order = True
                     session.commit()
-                elif ((strategy.direction == 'long' and tv_alrt.action == 'sell') or (
-                        strategy.direction == 'short' and tv_alrt.action == 'buy')) and strategy_mgmt.active_order:
+                elif (strategy.direction == 'long' and tv_alrt.action == 'sell') or (
+                        strategy.direction == 'short' and tv_alrt.action == 'buy'):
+                    if not strategy_mgmt.active_order:
+                        raise Exception("There no active order when closing position")
                     existing_order_hist = session.execute(select(OrderHistory)
                         .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
                         .where(OrderHistory.exchange == tv_alrt.exchange)
