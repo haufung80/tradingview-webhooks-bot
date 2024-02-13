@@ -172,7 +172,7 @@ class BybitOrderExecute(Action):
                 elif (strategy.direction == 'long' and tv_alrt.action == 'sell') or (
                         strategy.direction == 'short' and tv_alrt.action == 'buy'):
                     if not strategy_mgmt.active_order:
-                        raise Exception("There no active order when closing position")
+                        raise Exception("There is no active order when closing position")
                     existing_order_hist = session.execute(select(OrderHistory)
                         .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
                         .where(OrderHistory.exchange == tv_alrt.exchange)
