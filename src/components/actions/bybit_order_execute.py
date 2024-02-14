@@ -225,8 +225,8 @@ class BybitOrderExecute(Action):
                                     closed_mkt_order['info']['cumExecValue']) - existing_order_hist.exec_value - float(
                                     closed_mkt_order['info']['cumExecFee'])
                             else:
-                                fund_diff = float(
-                                    existing_order_hist.exec_value - closed_mkt_order['info']['cumExecValue']) - float(
+                                fund_diff = existing_order_hist.exec_value - float(
+                                    closed_mkt_order['info']['cumExecValue']) - float(
                                     closed_mkt_order['info']['cumExecFee'])
 
                             total_fund = existing_order_hist.total_fund + fund_diff
