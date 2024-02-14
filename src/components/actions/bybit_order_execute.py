@@ -66,10 +66,11 @@ def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order: Bybi
     session.commit()
 
 
-def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr, exchange_symbol, fund_diff, total_fund, filled_amt,
+def add_market_order_history(session, opn_mkt_odr: BybitOrderResponse, cls_mkt_odr: BybitFetchOrderResponse,
+                             exchange_symbol, fund_diff, total_fund, filled_amt,
                              alrt: TradingViewAlert):
     session.add(OrderHistory(
-        order_id=opn_mkt_odr['info']['orderId'],
+        order_id=opn_mkt_odr.id,
         strategy_id=alrt.strategy_id,
         source_symbol=alrt.symbol,
         exchange_symbol=exchange_symbol,
@@ -78,22 +79,20 @@ def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr, exchange_symbol,
         order_amt=filled_amt,
         active=False,
         exchange=alrt.exchange,
-        order_status=cls_mkt_odr['info']['orderStatus'],
-        avg_price=float(cls_mkt_odr['info']['avgPrice']),
-        exec_value=float(cls_mkt_odr['info']['cumExecValue']),
-        open_timestamp=cls_mkt_odr['info']['createdTime'],
-        open_datetime=datetime.fromtimestamp(int(cls_mkt_odr['info']['createdTime']) / 1000,
-                                             pytz.timezone('Asia/Nicosia')),
-        fill_timestamp=cls_mkt_odr['info']['updatedTime'],
-        fill_datetime=datetime.fromtimestamp(int(cls_mkt_odr['info']['updatedTime']) / 1000,
-                                             pytz.timezone('Asia/Nicosia')),
-        filled_amt=float(cls_mkt_odr['filled']),
-        fee_rate=float(cls_mkt_odr['info']['cumExecFee']) / float(cls_mkt_odr['info']['cumExecValue']),
-        total_fee=float(cls_mkt_odr['info']['cumExecFee']),
+        order_status=cls_mkt_odr.order_status,
+        avg_price=cls_mkt_odr.avg_price,
+        exec_value=cls_mkt_odr.cum_exec_value,
+        open_timestamp=cls_mkt_odr.created_time,
+        open_datetime=cls_mkt_odr.get_open_datetime(),
+        fill_timestamp=cls_mkt_odr.updated_time,
+        fill_datetime=cls_mkt_odr.get_fill_datetime(),
+        filled_amt=cls_mkt_odr.filled,
+        fee_rate=cls_mkt_odr.get_fee_rate(),
+        total_fee=cls_mkt_odr.cum_exec_fee,
         fund_diff=fund_diff,
         total_fund=total_fund,
-        order_payload_1=str(opn_mkt_odr),
-        order_payload_2=str(cls_mkt_odr),
+        order_payload_1=opn_mkt_odr.payload,
+        order_payload_2=cls_mkt_odr.payload,
     ))
     session.commit()
 
@@ -147,7 +146,6 @@ class BybitOrderExecute(Action):
         order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
                                                     alrt.price)
         order_rsp = BybitOrderResponse(order_payload)
-        order_rsp.payload = str(order_payload)
         return order_rsp, formatted_amount
 
     def place_order(self, tv_alrt):
@@ -209,18 +207,17 @@ class BybitOrderExecute(Action):
                             existing_order_hist.active = False
 
                         if existing_pos_order.order_status == 'Filled' or existing_pos_order.order_status == 'PartiallyFilled':
-                            open_mkt_order = exchange.create_market_order(exchange_symbol, tv_alrt.action,
-                                                                          existing_order_hist.filled_amt)
-                            closed_mkt_order = exchange.fetch_order(open_mkt_order['info']['orderId'],
-                                                                    exchange_symbol)
+                            open_mkt_order = BybitOrderResponse(
+                                exchange.create_market_order(exchange_symbol, tv_alrt.action,
+                                                             existing_order_hist.filled_amt))
+                            closed_mkt_order = BybitFetchOrderResponse(exchange.fetch_order(open_mkt_order.id,
+                                                                                            exchange_symbol))
+                            print(open_mkt_order)
+                            print(closed_mkt_order)
                             if strategy.direction == 'long':
-                                fund_diff = float(
-                                    closed_mkt_order['info']['cumExecValue']) - existing_order_hist.exec_value - float(
-                                    closed_mkt_order['info']['cumExecFee'])
+                                fund_diff = closed_mkt_order.cum_exec_value - existing_order_hist.exec_value - closed_mkt_order.cum_exec_fee
                             else:
-                                fund_diff = existing_order_hist.exec_value - float(
-                                    closed_mkt_order['info']['cumExecValue']) - float(
-                                    closed_mkt_order['info']['cumExecFee'])
+                                fund_diff = existing_order_hist.exec_value - closed_mkt_order.cum_exec_value - closed_mkt_order.cum_exec_fee
 
                             total_fund = existing_order_hist.total_fund + fund_diff
                             add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,

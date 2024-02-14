@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 import pytz
 from pydantic import validate_arguments
@@ -135,9 +134,10 @@ class TradingViewAlert:
 class BybitOrderResponse:
     def __init__(self, resp):
         self.id = resp['id']
+        self.payload = str(resp)
 
     id: str
-    payload: Optional[str] = None
+    payload: str
 
 
 class BybitFetchOrderResponse:
