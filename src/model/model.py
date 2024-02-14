@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 import pytz
 from pydantic import validate_arguments
@@ -29,10 +30,10 @@ class OrderHistory(Base, BaseMixin):
 
     order_id = Column(String(), unique=True)
     strategy_id = Column(String(50))
-    source_symbol = Column(String(10))
-    exchange_symbol = Column(String(10))
+    source_symbol = Column(String(20))
+    exchange_symbol = Column(String(20))
     action = Column(String(10))
-    order_status = Column(String(10))
+    order_status = Column(String(20))
     order_price = Column(REAL())
     avg_price = Column(REAL())
     exec_value = Column(REAL())
@@ -65,6 +66,7 @@ class AlertHistory(Base, BaseMixin):
     exchange = Column(String(50))
     action = Column(String(50))
     price = Column(Float())
+
 
 class Strategy(Base, BaseMixin):
     __tablename__ = 'strategy'
@@ -126,3 +128,13 @@ class TradingViewAlert:
     def get_date(self):
         return pytz.timezone('UTC').localize(
             datetime.strptime(self.timestamp, '%Y-%m-%dT%H:%M:%SZ'))
+
+
+@validate_arguments
+@dataclass
+class BybitOrderResponse:
+    def __init__(self, resp):
+        self.id = resp['id']
+
+    id: str
+    payload: Optional[str] = None

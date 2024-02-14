@@ -46,9 +46,10 @@ def add_alert_history(alert: TradingViewAlert, payload):
         session.commit()
         return ah.id
 
-def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount, alrt: TradingViewAlert):
+def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order: BybitOrderResponse, formatted_amount,
+                            alrt: TradingViewAlert):
     session.add(OrderHistory(
-        order_id=order['info']['orderId'],
+        order_id=order.id,
         strategy_id=alrt.strategy_id,
         source_symbol=alrt.symbol,
         exchange_symbol=exchange_symbol,
@@ -60,7 +61,7 @@ def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, form
         position_fund=alrt.price * float(formatted_amount),
         total_fund=strategy_mgmt.fund,
         exchange=alrt.exchange,
-        order_payload_1=str(order)
+        order_payload_1=order.payload
     ))
     session.commit()
 
@@ -143,9 +144,11 @@ class BybitOrderExecute(Action):
             formatted_amount = 0.01
         else:
             formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-        order = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
-                                            alrt.price)
-        return order, formatted_amount
+        order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
+                                                    alrt.price)
+        order_rsp = BybitOrderResponse(order_payload)
+        order_rsp.payload = str(order_payload)
+        return order_rsp, formatted_amount
 
     def place_order(self, tv_alrt):
         with Session(engine) as session:
@@ -163,9 +166,9 @@ class BybitOrderExecute(Action):
                         strategy.direction == 'short' and tv_alrt.action == 'sell'):
                     if strategy_mgmt.active_order:
                         raise Exception("There are still active order when opening position")
-                    exc_order_rec, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
-                                                                            tv_alrt, exchange)
-                    add_limit_order_history(session, strategy_mgmt, exchange_symbol, exc_order_rec, formatted_amount,
+                    order_rsp, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
+                                                                        tv_alrt, exchange)
+                    add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
                                             tv_alrt)
                     strategy_mgmt.active_order = True
                     session.commit()
@@ -252,7 +255,7 @@ class BybitOrderExecute(Action):
             with Session(engine) as session:
                 session.add(OrderExecutionError(
                     alert_id=alert_id,
-                    error=e.args,
+                    error=str(e),
                     error_stack=traceback.format_exc()
                 ))
                 session.commit()
