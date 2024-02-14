@@ -200,10 +200,12 @@ class BybitOrderExecute(Action):
                         session.flush()
 
                         if existing_pos_order.order_status == 'New' or existing_pos_order.order_status == 'PartiallyFilled':
-                            order_1 = exchange.cancel_order(existing_order_hist.order_id, exchange_symbol)
-                            order_2 = exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
-                            existing_order_hist.order_payload_2 = str(order_2)  # overriding above
-                            existing_order_hist.order_status = order_2['info']['orderStatus']
+                            open_cnl_order = BybitOrderResponse(
+                                exchange.cancel_order(existing_order_hist.order_id, exchange_symbol))
+                            cls_cnl_order = BybitFetchOrderResponse(
+                                exchange.fetch_order(open_cnl_order.id, exchange_symbol))
+                            existing_order_hist.order_payload_2 = cls_cnl_order.payload  # overriding above
+                            existing_order_hist.order_status = cls_cnl_order.order_status
                             existing_order_hist.active = False
 
                         if existing_pos_order.order_status == 'Filled' or existing_pos_order.order_status == 'PartiallyFilled':
@@ -212,8 +214,6 @@ class BybitOrderExecute(Action):
                                                              existing_order_hist.filled_amt))
                             closed_mkt_order = BybitFetchOrderResponse(exchange.fetch_order(open_mkt_order.id,
                                                                                             exchange_symbol))
-                            print(open_mkt_order)
-                            print(closed_mkt_order)
                             if strategy.direction == 'long':
                                 fund_diff = closed_mkt_order.cum_exec_value - existing_order_hist.exec_value - closed_mkt_order.cum_exec_fee
                             else:
