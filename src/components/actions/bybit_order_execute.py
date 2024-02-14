@@ -176,46 +176,39 @@ class BybitOrderExecute(Action):
                         strategy.direction == 'short' and tv_alrt.action == 'buy'):
                     if not strategy_mgmt.active_order:
                         raise Exception("There is no active order when closing position")
-                    existing_order_hist = session.execute(select(OrderHistory)
+                    existing_order_hist: OrderHistory = session.execute(select(OrderHistory)
                         .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
                         .where(OrderHistory.exchange == tv_alrt.exchange)
                         .order_by(OrderHistory.created_at.desc()).limit(
                         1)).scalar_one()
                     if existing_order_hist.active:
-                        existing_pos_order = exchange.fetch_order(existing_order_hist.order_id, exchange_symbol)
+                        existing_pos_order = BybitFetchOrderResponse(
+                            exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
+                        existing_order_hist.order_status = existing_pos_order.order_status
+                        existing_order_hist.open_timestamp = existing_pos_order.created_time
+                        existing_order_hist.open_datetime = existing_pos_order.get_open_datetime()
+                        existing_order_hist.order_payload_2 = existing_pos_order.payload
 
-                        existing_order_hist.order_status = existing_pos_order['info']['orderStatus']
-                        existing_order_hist.open_timestamp = existing_pos_order['info']['createdTime']
-                        existing_order_hist.open_datetime = datetime.fromtimestamp(
-                            int(existing_pos_order['info']['createdTime']) / 1000, pytz.timezone('Asia/Nicosia'))
-                        existing_order_hist.order_payload_2 = str(existing_pos_order)
-
-                        if existing_pos_order['info']['orderStatus'] != 'New':
-                            existing_order_hist.avg_price = float(existing_pos_order['info']['avgPrice'])
-                            existing_order_hist.exec_value = float(existing_pos_order['info']['cumExecValue'])
-                            existing_order_hist.fill_timestamp = existing_pos_order['info']['updatedTime']
-                            existing_order_hist.fill_datetime = datetime.fromtimestamp(
-                                int(existing_pos_order['info']['updatedTime']) / 1000, pytz.timezone('Asia/Nicosia'))
-                            existing_order_hist.filled_amt = float(existing_pos_order['filled'])
-                            existing_order_hist.fee_rate = float(
-                                existing_pos_order['info']['cumExecFee']) / existing_order_hist.exec_value
-                            existing_order_hist.total_fee = float(existing_pos_order['info']['cumExecFee'])
-                            existing_order_hist.fund_diff = -float(existing_pos_order['info']['cumExecFee'])
-
-                            existing_order_hist.total_fund = existing_order_hist.total_fund - float(
-                                existing_pos_order['info']['cumExecFee'])
+                        if existing_pos_order.order_status != 'New':
+                            existing_order_hist.avg_price = existing_pos_order.avg_price
+                            existing_order_hist.exec_value = existing_pos_order.cum_exec_value
+                            existing_order_hist.fill_timestamp = existing_pos_order.updated_time
+                            existing_order_hist.fill_datetime = existing_pos_order.get_fill_datetime()
+                            existing_order_hist.filled_amt = existing_pos_order.filled
+                            existing_order_hist.fee_rate = existing_pos_order.get_fee_rate()
+                            existing_order_hist.total_fee = existing_pos_order.cum_exec_fee
+                            existing_order_hist.fund_diff = -existing_pos_order.cum_exec_fee
+                            existing_order_hist.total_fund = existing_order_hist.total_fund - existing_pos_order.cum_exec_fee
                         session.flush()
 
-                        if existing_pos_order['info']['orderStatus'] == 'New' or existing_pos_order['info'][
-                            'orderStatus'] == 'PartiallyFilled':
+                        if existing_pos_order.order_status == 'New' or existing_pos_order.order_status == 'PartiallyFilled':
                             order_1 = exchange.cancel_order(existing_order_hist.order_id, exchange_symbol)
                             order_2 = exchange.fetch_order(order_1['info']['orderId'], exchange_symbol)
                             existing_order_hist.order_payload_2 = str(order_2)  # overriding above
                             existing_order_hist.order_status = order_2['info']['orderStatus']
                             existing_order_hist.active = False
 
-                        if existing_pos_order['info']['orderStatus'] == 'Filled' or existing_pos_order['info'][
-                            'orderStatus'] == 'PartiallyFilled':
+                        if existing_pos_order.order_status == 'Filled' or existing_pos_order.order_status == 'PartiallyFilled':
                             open_mkt_order = exchange.create_market_order(exchange_symbol, tv_alrt.action,
                                                                           existing_order_hist.filled_amt)
                             closed_mkt_order = exchange.fetch_order(open_mkt_order['info']['orderId'],

@@ -138,3 +138,35 @@ class BybitOrderResponse:
 
     id: str
     payload: Optional[str] = None
+
+
+class BybitFetchOrderResponse:
+    def __init__(self, resp):
+        self.order_status = resp['info']['orderStatus']
+        self.created_time = resp['info']['createdTime']
+        self.payload = str(resp)
+
+        self.avg_price = float(resp['info']['avgPrice'])
+        self.cum_exec_value = float(resp['info']['cumExecValue'])
+        self.updated_time = resp['info']['updatedTime']
+        self.filled = float(resp['filled'])
+        self.cum_exec_fee = float(resp['info']['cumExecFee'])
+
+    order_status: str
+    created_time: str
+    payload: str
+
+    avg_price: float
+    cum_exec_value: float
+    updated_time: str
+    filled: float
+    cum_exec_fee: float
+
+    def get_open_datetime(self):
+        return datetime.fromtimestamp(int(self.created_time) / 1000, pytz.timezone('Asia/Nicosia'))
+
+    def get_fill_datetime(self):
+        return datetime.fromtimestamp(int(self.updated_time) / 1000, pytz.timezone('Asia/Nicosia'))
+
+    def get_fee_rate(self):
+        return self.cum_exec_fee / self.cum_exec_value
