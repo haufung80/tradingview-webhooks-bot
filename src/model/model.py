@@ -95,6 +95,7 @@ class StrategyManagement(Base, BaseMixin):
     strategy_id = Column(String(50), unique=True)
     active_order = Column(Boolean())
     fund = Column(Float())
+    exchange = Column(String(50))
 
 
 class OrderExecutionError(Base, BaseMixin):
