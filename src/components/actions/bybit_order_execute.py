@@ -15,7 +15,7 @@ sys.path.append(os.path.split(os.getcwd())[0])
 load_dotenv()
 engine = create_engine(os.getenv('POSTGRESQL_URL'), echo=True)
 
-from src.model.model import *
+from model.model import *
 
 
 def symbol_translate(symbol):
@@ -44,6 +44,7 @@ def add_alert_history(alert: TradingViewAlert):
         session.add(ah)
         session.commit()
         return ah.id
+
 
 def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order: BybitOrderResponse, formatted_amount,
                             alrt: TradingViewAlert):
@@ -228,10 +229,7 @@ class BybitOrderExecute(Action):
                         strategy_mgmt.active_order = False
                         session.commit()
 
-    def run(self, *args, **kwargs):
-        super().run(*args, **kwargs)  # this is required
-        print(self.name, '---> action has run!')
-        data = self.validate_data()
+    def process_msg(self, data):
         tv_alrt = TradingViewAlert(data)
         if is_duplicate_alert(tv_alrt):
             _ = add_alert_history(tv_alrt)
@@ -248,3 +246,9 @@ class BybitOrderExecute(Action):
                     error_stack=traceback.format_exc()
                 ))
                 session.commit()
+
+    def run(self, *args, **kwargs):
+        super().run(*args, **kwargs)  # this is required
+        print(self.name, '---> action has run!')
+        data = self.validate_data()
+        self.process_msg(data)
