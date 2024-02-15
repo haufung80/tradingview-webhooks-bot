@@ -111,3 +111,7 @@ src/.key
 src/.gui_key
 
 src/config.ini
+
+src/tests/features/.key
+src/tests/features/config.ini
+src/tests/features/report.html
