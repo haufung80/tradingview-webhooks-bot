@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pytest_bdd import scenarios, given, then, parsers
 from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import Session
@@ -12,11 +14,12 @@ scenarios("bybit_order_execute.feature")
 
 
 @given(parsers.parse(
-    "Incoming tradingview alert of {strategy_id},{action},{price},{symbol},{timestamp},{exchange},{source}"),
-       target_fixture="err_num")
-def given_cucumbers(strategy_id, action, price, symbol, timestamp, exchange, source):
+    "Incoming tradingview alert of {strategy_id},{action},{price},{symbol},{exchange},{source}"),
+    target_fixture="err_num")
+def given_cucumbers(strategy_id, action, price, symbol, exchange, source):
     with Session(engine) as session:
         err_num = session.execute(select(func.count("*")).select_from(OrderExecutionError)).scalar_one()
+    timestamp = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
     tv_alert_dict = {
         "key": "BybitWebhook:xxxxxx",
         "data": {

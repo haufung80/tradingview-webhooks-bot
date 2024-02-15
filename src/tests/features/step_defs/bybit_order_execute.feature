@@ -3,13 +3,13 @@
 Feature: Placing Order to different exchanges
 
   Scenario Outline: Placing Order to Bybit Exchange
-    Given Incoming tradingview alert of <strategy_id>,<action>,<price>,<symbol>,<timestamp>,<exchange>,<source>
+    Given Incoming tradingview alert of <strategy_id>,<action>,<price>,<symbol>,<exchange>,<source>
     Then There should be no error
 
     Examples:
-      | strategy_id                       | action | price | symbol    | timestamp            | exchange | source      |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_FXS | buy    | 20    | FXSUSDT.P | 2024-02-11T04:01:51Z | BYBIT    | tradingview |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_FXS | sell   | 20    | FXSUSDT.P | 2024-02-11T04:01:52Z | BYBIT    | tradingview |
+      | strategy_id                       | action | price | symbol    | exchange | source      |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_FXS | buy    | 20    | FXSUSDT.P | BYBIT    | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_FXS | sell   | 20    | FXSUSDT.P | BYBIT    | tradingview |
 
 
 #Scenario Outline: Filter duplicated alert
