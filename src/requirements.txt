@@ -21,5 +21,7 @@ alembic
 sqlalchemy
 python-dotenv
 psycopg2-binary
-behave
 pydantic
+pytest
+pytest-bdd
+pytest-html
