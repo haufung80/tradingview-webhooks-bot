@@ -104,25 +104,25 @@ class OrderExecutionError(Base, BaseMixin):
     error_stack = Column(String())
 
 
-@validate_arguments
-@dataclass
 class TradingViewAlert:
+    def __init__(self, resp):
+        self.strategy_id = resp['data']['strategy_id']
+        self.action = resp['data']['action']
+        self.price = float(resp['data']['price'])
+        self.symbol = resp['data']['symbol']
+        self.timestamp = resp['data']['timestamp']
+        self.exchange = resp['data']['exchange']
+        self.source = resp['data']['source']
+        self.payload = str(resp['data'])
+
     strategy_id: str
     action: str
-    position_size: float
     price: float
     symbol: str
     timestamp: str
     exchange: str
     source: str
-    noofcontracts: float
-    orderid: str
-    comment: str
-    alert_msg: str
-    market_position: str
-    market_position_size: float
-    prev_market_position: str
-    prev_market_position_size: float
+    payload: str
 
     def get_date(self):
         return pytz.timezone('UTC').localize(

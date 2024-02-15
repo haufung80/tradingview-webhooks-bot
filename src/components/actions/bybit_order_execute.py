@@ -1,5 +1,4 @@
 import configparser
-import json
 import os
 import sys
 import traceback
@@ -30,11 +29,11 @@ def symbol_translate(symbol):
         return symbol.replace('USDT.P', 'USDT')
 
 
-def add_alert_history(alert: TradingViewAlert, payload):
+def add_alert_history(alert: TradingViewAlert):
     with Session(engine) as session:
         ah = AlertHistory(
             source=alert.source,
-            message_payload=payload,
+            message_payload=alert.payload,
             strategy_id=alert.strategy_id,
             timestamp=alert.get_date(),
             symbol=alert.symbol,
@@ -233,11 +232,11 @@ class BybitOrderExecute(Action):
         super().run(*args, **kwargs)  # this is required
         print(self.name, '---> action has run!')
         data = self.validate_data()
-        tv_alrt = TradingViewAlert(**json.loads(json.dumps(data['data'])))
+        tv_alrt = TradingViewAlert(data)
         if is_duplicate_alert(tv_alrt):
-            _ = add_alert_history(tv_alrt, str(data))
+            _ = add_alert_history(tv_alrt)
             return
-        alert_id = add_alert_history(tv_alrt, str(data))
+        alert_id = add_alert_history(tv_alrt)
         try:
             self.place_order(tv_alrt)
         except Exception as e:
