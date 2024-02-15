@@ -92,7 +92,8 @@ class Strategy(Base, BaseMixin):
 
 class StrategyManagement(Base, BaseMixin):
     __tablename__ = 'strategy_management'
-    strategy_id = Column(String(50), unique=True)
+    strat_mgmt_id = Column(String(100), unique=True)
+    strategy_id = Column(String(50))
     active_order = Column(Boolean())
     fund = Column(Float())
     exchange = Column(String(50))

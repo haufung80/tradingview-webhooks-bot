@@ -179,7 +179,8 @@ if the order is partially filled:
 psql 'postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
 delete from strategy; \g
 \copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
-insert into strategy_management (select strategy_id, false,  100 from strategy where strategy_id not in (select strategy_id from strategy_management));delete from strategy_management where strategy_id not in (select strategy_id from strategy); \g
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 'BYBIT' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));\g
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 'BITGET' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));\g
 ```
 
 #### Code deployment
