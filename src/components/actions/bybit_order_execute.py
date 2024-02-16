@@ -68,7 +68,7 @@ def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order: Bybi
 
 def add_market_order_history(session, opn_mkt_odr: BybitOrderResponse, cls_mkt_odr: BybitFetchOrderResponse,
                              exchange_symbol, fund_diff, total_fund, filled_amt,
-                             alrt: TradingViewAlert):
+                             alrt: TradingViewAlert, strat_mgmt: StrategyManagement):
     session.add(OrderHistory(
         order_id=opn_mkt_odr.id,
         strategy_id=alrt.strategy_id,
@@ -78,7 +78,7 @@ def add_market_order_history(session, opn_mkt_odr: BybitOrderResponse, cls_mkt_o
         order_price=alrt.price,
         order_amt=filled_amt,
         active=False,
-        exchange=alrt.exchange,
+        exchange=strat_mgmt.exchange,
         order_status=cls_mkt_odr.order_status,
         avg_price=cls_mkt_odr.avg_price,
         exec_value=cls_mkt_odr.cum_exec_value,
@@ -124,9 +124,11 @@ class BybitOrderExecute(Action):
         'secret': API_SECRET_PERSONAL
     })
 
+    BITGET_PASSWORD = config['BitgetSettings']['password']
     BITGET_API_KEY = config['BitgetSettings']['key']
     BITGET_API_SECRET = config['BitgetSettings']['secret']
     bitget_exchange = ccxt.bitget({
+        'password': BITGET_PASSWORD,
         'apiKey': BITGET_API_KEY,
         'secret': BITGET_API_SECRET
     })
@@ -196,7 +198,7 @@ class BybitOrderExecute(Action):
                         raise Exception("There is no active order when closing position")
                     existing_order_hist: OrderHistory = session.execute(select(OrderHistory)
                         .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
-                        .where(OrderHistory.exchange == tv_alrt.exchange)
+                        .where(OrderHistory.exchange == strategy_mgmt.exchange)
                         .order_by(OrderHistory.created_at.desc()).limit(
                         1)).scalar_one()
                     if existing_order_hist.active:
@@ -219,7 +221,7 @@ class BybitOrderExecute(Action):
                             existing_order_hist.total_fund = existing_order_hist.total_fund - existing_pos_order.cum_exec_fee
                         session.flush()
 
-                        if existing_pos_order.order_status == 'New' or existing_pos_order.order_status == 'PartiallyFilled':
+                        if existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value:
                             open_cnl_order = BybitOrderResponse(
                                 exchange.cancel_order(existing_order_hist.order_id, exchange_symbol))
                             cls_cnl_order = BybitFetchOrderResponse(
@@ -228,7 +230,7 @@ class BybitOrderExecute(Action):
                             existing_order_hist.order_status = cls_cnl_order.order_status
                             existing_order_hist.active = False
 
-                        if existing_pos_order.order_status == 'Filled' or existing_pos_order.order_status == 'PartiallyFilled':
+                        if existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value:
                             open_mkt_order = BybitOrderResponse(
                                 exchange.create_market_order(exchange_symbol, tv_alrt.action,
                                                              existing_order_hist.filled_amt))
@@ -243,7 +245,7 @@ class BybitOrderExecute(Action):
                             add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
                                                      fund_diff,
                                                      total_fund, existing_order_hist.filled_amt,
-                                                     tv_alrt)
+                                                     tv_alrt, strategy_mgmt)
                             strategy_mgmt.fund = total_fund
 
                         strategy_mgmt.active_order = False

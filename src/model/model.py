@@ -179,3 +179,9 @@ class BybitFetchOrderResponse:
 class CryptoExchange(Enum):
     BYBIT = 'BYBIT'
     BITGET = 'BITGET'
+
+
+class ExchangeOrderStatus(Enum):
+    BYBIT_NEW = 'New'
+    BYBIT_PARTIALLY_FILLED = 'PartiallyFilled'
+    BYBIT_FILLED = 'Filled'
