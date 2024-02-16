@@ -209,7 +209,7 @@ class BybitOrderExecute(Action):
                         existing_order_hist.open_datetime = existing_pos_order.get_open_datetime()
                         existing_order_hist.order_payload_2 = existing_pos_order.payload
 
-                        if existing_pos_order.order_status != 'New':
+                        if existing_pos_order.order_status != ExchangeOrderStatus.BYBIT_NEW.value:
                             existing_order_hist.avg_price = existing_pos_order.avg_price
                             existing_order_hist.exec_value = existing_pos_order.cum_exec_value
                             existing_order_hist.fill_timestamp = existing_pos_order.updated_time
