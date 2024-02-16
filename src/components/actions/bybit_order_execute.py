@@ -107,6 +107,35 @@ def is_duplicate_alert(alert: TradingViewAlert):
         ).all()) > 0
 
 
+def bybit_update_initial_order_history(eoh, epo):
+    eoh.order_status = epo.order_status
+    eoh.open_timestamp = epo.created_time
+    eoh.open_datetime = epo.get_open_datetime()
+    eoh.order_payload_2 = epo.payload
+
+
+def bybit_update_filled_order_history(eoh, epo):
+    eoh.avg_price = epo.avg_price
+    eoh.exec_value = epo.cum_exec_value
+    eoh.fill_timestamp = epo.updated_time
+    eoh.fill_datetime = epo.get_fill_datetime()
+    eoh.filled_amt = epo.filled
+    eoh.fee_rate = epo.get_fee_rate()
+    eoh.total_fee = epo.cum_exec_fee
+    eoh.fund_diff = -epo.cum_exec_fee
+    eoh.total_fund = eoh.total_fund - epo.cum_exec_fee
+
+
+def bybit_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
+    open_cnl_order = BybitOrderResponse(
+        exchange.cancel_order(eoh.order_id, exchange_symbol))
+    cls_cnl_order = BybitFetchOrderResponse(
+        exchange.fetch_order(open_cnl_order.id, exchange_symbol))
+    eoh.order_payload_2 = cls_cnl_order.payload  # overriding above
+    eoh.order_status = cls_cnl_order.order_status
+    eoh.active = False
+
+
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -204,31 +233,14 @@ class BybitOrderExecute(Action):
                     if existing_order_hist.active:
                         existing_pos_order = BybitFetchOrderResponse(
                             exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
-                        existing_order_hist.order_status = existing_pos_order.order_status
-                        existing_order_hist.open_timestamp = existing_pos_order.created_time
-                        existing_order_hist.open_datetime = existing_pos_order.get_open_datetime()
-                        existing_order_hist.order_payload_2 = existing_pos_order.payload
+                        bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
 
                         if existing_pos_order.order_status != ExchangeOrderStatus.BYBIT_NEW.value:
-                            existing_order_hist.avg_price = existing_pos_order.avg_price
-                            existing_order_hist.exec_value = existing_pos_order.cum_exec_value
-                            existing_order_hist.fill_timestamp = existing_pos_order.updated_time
-                            existing_order_hist.fill_datetime = existing_pos_order.get_fill_datetime()
-                            existing_order_hist.filled_amt = existing_pos_order.filled
-                            existing_order_hist.fee_rate = existing_pos_order.get_fee_rate()
-                            existing_order_hist.total_fee = existing_pos_order.cum_exec_fee
-                            existing_order_hist.fund_diff = -existing_pos_order.cum_exec_fee
-                            existing_order_hist.total_fund = existing_order_hist.total_fund - existing_pos_order.cum_exec_fee
+                            bybit_update_filled_order_history(existing_order_hist, existing_pos_order)
                         session.flush()
 
                         if existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value:
-                            open_cnl_order = BybitOrderResponse(
-                                exchange.cancel_order(existing_order_hist.order_id, exchange_symbol))
-                            cls_cnl_order = BybitFetchOrderResponse(
-                                exchange.fetch_order(open_cnl_order.id, exchange_symbol))
-                            existing_order_hist.order_payload_2 = cls_cnl_order.payload  # overriding above
-                            existing_order_hist.order_status = cls_cnl_order.order_status
-                            existing_order_hist.active = False
+                            bybit_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
 
                         if existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value:
                             open_mkt_order = BybitOrderResponse(
