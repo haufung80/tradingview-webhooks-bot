@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 
 import pytz
 from pydantic import validate_arguments
@@ -97,6 +98,7 @@ class StrategyManagement(Base, BaseMixin):
     active_order = Column(Boolean())
     fund = Column(Float())
     exchange = Column(String(50))
+    active = Column(Boolean())
 
 
 class OrderExecutionError(Base, BaseMixin):
@@ -172,3 +174,8 @@ class BybitFetchOrderResponse:
 
     def get_fee_rate(self):
         return self.cum_exec_fee / self.cum_exec_value
+
+
+class CryptoExchange(Enum):
+    BYBIT = 'BYBIT'
+    BITGET = 'BITGET'

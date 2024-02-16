@@ -60,7 +60,7 @@ def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order: Bybi
         position_size=alrt.price * float(formatted_amount) / strategy_mgmt.fund,
         position_fund=alrt.price * float(formatted_amount),
         total_fund=strategy_mgmt.fund,
-        exchange=alrt.exchange,
+        exchange=strategy_mgmt.exchange,
         order_payload_1=order.payload
     ))
     session.commit()
@@ -124,6 +124,13 @@ class BybitOrderExecute(Action):
         'secret': API_SECRET_PERSONAL
     })
 
+    BITGET_API_KEY = config['BitgetSettings']['key']
+    BITGET_API_SECRET = config['BitgetSettings']['secret']
+    bitget_exchange = ccxt.bitget({
+        'apiKey': BITGET_API_KEY,
+        'secret': BITGET_API_SECRET
+    })
+
     if config['BybitSettings']['set_sandbox_mode'] == 'True':
         bybit_exchange.set_sandbox_mode(True)
         bybit_exchange_per.set_sandbox_mode(True)
@@ -132,42 +139,55 @@ class BybitOrderExecute(Action):
         super().__init__()
         self.bybit_exchange.check_required_credentials()  # raises AuthenticationError
         self.bybit_exchange_per.check_required_credentials()  # raises AuthenticationError
+        self.bitget_exchange.check_required_credentials()  # raises AuthenticationError
         markets = self.bybit_exchange.load_markets()
         markets1 = self.bybit_exchange_per.load_markets()
+        markets2 = self.bitget_exchange.load_markets()
 
-    def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange):
-        amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
-        if exchange_symbol == 'BTCUSDT' and amount < 0.001:
-            formatted_amount = 0.001
-        elif exchange_symbol == 'ETHUSDT' and amount < 0.01:
-            formatted_amount = 0.01
-        else:
-            formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-        order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
-                                                    alrt.price)
-        order_rsp = BybitOrderResponse(order_payload)
-        return order_rsp, formatted_amount
+    def get_exchange_instance(self, strat: Strategy, strat_mgmt: StrategyManagement):
+        if strat_mgmt.exchange == CryptoExchange.BYBIT.value:
+            if strat.personal_acc:
+                return self.bybit_exchange_per
+            else:
+                return self.bybit_exchange
+        elif strat_mgmt.exchange == CryptoExchange.BITGET.value:
+            return self.bitget_exchange
+
+    def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange, session):
+        if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
+            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
+            if exchange_symbol == 'BTCUSDT' and amount < 0.001:
+                formatted_amount = 0.001
+            elif exchange_symbol == 'ETHUSDT' and amount < 0.01:
+                formatted_amount = 0.01
+            else:
+                formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+            order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
+                                                        alrt.price)
+            order_rsp = BybitOrderResponse(order_payload)
+
+            add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+                                    alrt)
 
     def place_order(self, tv_alrt):
         with Session(engine) as session:
-            [(strategy, strategy_mgmt)] = session.execute(
-                select(Strategy, StrategyManagement).join(StrategyManagement,
-                                                          StrategyManagement.strategy_id == Strategy.strategy_id).where(
-                    Strategy.strategy_id == tv_alrt.strategy_id)).all()
-            if strategy.active:
-                if strategy.personal_acc:
-                    exchange = self.bybit_exchange_per
-                else:
-                    exchange = self.bybit_exchange
+            [(strategy,)] = session.execute(
+                select(Strategy).where(Strategy.strategy_id == tv_alrt.strategy_id)).all()
+            if not strategy.active:
+                return
+            strategy_mgmt_list = session.execute(
+                select(StrategyManagement).where(StrategyManagement.strategy_id == tv_alrt.strategy_id)).all()
+            for (strategy_mgmt,) in strategy_mgmt_list:
+                strategy_mgmt: StrategyManagement
+                if not strategy_mgmt.active:
+                    continue
+                exchange = self.get_exchange_instance(strategy, strategy_mgmt)
                 exchange_symbol = symbol_translate(tv_alrt.symbol)
                 if (strategy.direction == 'long' and tv_alrt.action == 'buy') or (
                         strategy.direction == 'short' and tv_alrt.action == 'sell'):
                     if strategy_mgmt.active_order:
                         raise Exception("There are still active order when opening position")
-                    order_rsp, formatted_amount = self.send_limit_order(strategy, strategy_mgmt, exchange_symbol,
-                                                                        tv_alrt, exchange)
-                    add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                                            tv_alrt)
+                    self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
                     strategy_mgmt.active_order = True
                     session.commit()
                 elif (strategy.direction == 'long' and tv_alrt.action == 'sell') or (
