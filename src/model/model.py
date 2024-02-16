@@ -90,6 +90,11 @@ class Strategy(Base, BaseMixin):
     active = Column(Boolean())
     personal_acc = Column(Boolean())
 
+    def calculate_fund_diff(self, closed_price, open_price, total_fee):
+        if self.direction == 'long':
+            return closed_price - open_price - total_fee
+        else:
+            return open_price - closed_price - total_fee
 
 class StrategyManagement(Base, BaseMixin):
     __tablename__ = 'strategy_management'

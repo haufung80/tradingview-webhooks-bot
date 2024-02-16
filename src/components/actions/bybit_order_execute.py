@@ -136,6 +136,12 @@ def bybit_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
     eoh.active = False
 
 
+def bybit_close_market_order(exchange, exchange_symbol, action, amt):
+    open_mkt_order = BybitOrderResponse(
+        exchange.create_market_order(exchange_symbol, action, amt))
+    return open_mkt_order, BybitFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
+
+
 class BybitOrderExecute(Action):
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -243,22 +249,19 @@ class BybitOrderExecute(Action):
                             bybit_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
 
                         if existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value:
-                            open_mkt_order = BybitOrderResponse(
-                                exchange.create_market_order(exchange_symbol, tv_alrt.action,
-                                                             existing_order_hist.filled_amt))
-                            closed_mkt_order = BybitFetchOrderResponse(exchange.fetch_order(open_mkt_order.id,
-                                                                                            exchange_symbol))
-                            if strategy.direction == 'long':
-                                fund_diff = closed_mkt_order.cum_exec_value - existing_order_hist.exec_value - closed_mkt_order.cum_exec_fee
-                            else:
-                                fund_diff = existing_order_hist.exec_value - closed_mkt_order.cum_exec_value - closed_mkt_order.cum_exec_fee
+                            open_mkt_order, closed_mkt_order = bybit_close_market_order(exchange, exchange_symbol,
+                                                                                        tv_alrt.action,
+                                                                                        existing_order_hist.filled_amt)
 
-                            total_fund = existing_order_hist.total_fund + fund_diff
+                            fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
+                                                                     existing_order_hist.exec_value,
+                                                                     closed_mkt_order.cum_exec_fee)
+                            strategy_mgmt.fund = existing_order_hist.total_fund + fund_diff
+
                             add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
                                                      fund_diff,
-                                                     total_fund, existing_order_hist.filled_amt,
+                                                     strategy_mgmt.fund, existing_order_hist.filled_amt,
                                                      tv_alrt, strategy_mgmt)
-                            strategy_mgmt.fund = total_fund
 
                         strategy_mgmt.active_order = False
                         session.commit()
