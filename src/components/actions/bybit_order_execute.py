@@ -2,6 +2,7 @@ import configparser
 import os
 import sys
 import traceback
+from typing import Any
 
 import ccxt as ccxt
 from dotenv import load_dotenv
@@ -17,20 +18,6 @@ engine = create_engine(os.getenv('POSTGRESQL_URL'), echo=True)
 
 from model.model import *
 
-
-def symbol_translate(symbol, exchange):
-    if exchange == CryptoExchange.BYBIT.value:
-        if symbol == 'WEMIXUSDT':
-            return 'WEMIXUSDT'
-        elif symbol == 'WBTCUSDT':
-            return 'WBTCUSDT'
-        elif symbol == 'CAKEUSDT':
-            return 'CAKEUSDT'
-        else:
-            return symbol.replace('USDT.P', 'USDT')
-    elif exchange == CryptoExchange.BITGET.value:
-        symbol = symbol.replace('USDT.P', 'SUSDT')
-        return f'S{symbol}_SUMCBL'
 
 def add_alert_history(alert: TradingViewAlert):
     with Session(engine) as session:
@@ -181,40 +168,47 @@ def bitget_close_market_order(exchange, exchange_symbol, action, amt):
 
 
 class BybitOrderExecute(Action):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    API_KEY = config['BybitSettings']['key']
-    API_SECRET = config['BybitSettings']['secret']
-    bybit_exchange = ccxt.bybit({
-        'apiKey': API_KEY,
-        'secret': API_SECRET
-    })
-
-    API_KEY_PERSONAL = config['BybitSettings']['key_personal']
-    API_SECRET_PERSONAL = config['BybitSettings']['secret_personal']
-    bybit_exchange_per = ccxt.bybit({
-        'apiKey': API_KEY_PERSONAL,
-        'secret': API_SECRET_PERSONAL
-    })
-
-    BITGET_PASSWORD = config['BitgetSettings']['password']
-    BITGET_API_KEY = config['BitgetSettings']['key']
-    BITGET_API_SECRET = config['BitgetSettings']['secret']
-    bitget_exchange = ccxt.bitget({
-        'password': BITGET_PASSWORD,
-        'apiKey': BITGET_API_KEY,
-        'secret': BITGET_API_SECRET
-    })
-
-    if config['BybitSettings']['set_sandbox_mode'] == 'True':
-        bybit_exchange.set_sandbox_mode(True)
-        bybit_exchange_per.set_sandbox_mode(True)
-
-    if config['BitgetSettings']['set_sandbox_mode'] == 'True':
-        bitget_exchange.set_sandbox_mode(True)
+    bybit_exchange: Any
+    bybit_exchange_per: Any
+    bitget_exchange: Any
+    bitget_exchange_sandbox_mode = False
 
     def __init__(self):
         super().__init__()
+
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        API_KEY = config['BybitSettings']['key']
+        API_SECRET = config['BybitSettings']['secret']
+        self.bybit_exchange = ccxt.bybit({
+            'apiKey': API_KEY,
+            'secret': API_SECRET
+        })
+
+        API_KEY_PERSONAL = config['BybitSettings']['key_personal']
+        API_SECRET_PERSONAL = config['BybitSettings']['secret_personal']
+        self.bybit_exchange_per = ccxt.bybit({
+            'apiKey': API_KEY_PERSONAL,
+            'secret': API_SECRET_PERSONAL
+        })
+
+        BITGET_PASSWORD = config['BitgetSettings']['password']
+        BITGET_API_KEY = config['BitgetSettings']['key']
+        BITGET_API_SECRET = config['BitgetSettings']['secret']
+        self.bitget_exchange = ccxt.bitget({
+            'password': BITGET_PASSWORD,
+            'apiKey': BITGET_API_KEY,
+            'secret': BITGET_API_SECRET
+        })
+
+        if config['BybitSettings']['set_sandbox_mode'] == 'True':
+            self.bybit_exchange.set_sandbox_mode(True)
+            self.bybit_exchange_per.set_sandbox_mode(True)
+
+        if config['BitgetSettings']['set_sandbox_mode'] == 'True':
+            self.bitget_exchange.set_sandbox_mode(True)
+            self.bitget_exchange_sandbox_mode = True
+
         self.bybit_exchange.check_required_credentials()  # raises AuthenticationError
         self.bybit_exchange_per.check_required_credentials()  # raises AuthenticationError
         self.bitget_exchange.check_required_credentials()  # raises AuthenticationError
@@ -230,6 +224,23 @@ class BybitOrderExecute(Action):
                 return self.bybit_exchange
         elif strat_mgmt.exchange == CryptoExchange.BITGET.value:
             return self.bitget_exchange
+
+    def symbol_translate(self, symbol, exchange):
+        if exchange == CryptoExchange.BYBIT.value:
+            if symbol == 'WEMIXUSDT':
+                return 'WEMIXUSDT'
+            elif symbol == 'WBTCUSDT':
+                return 'WBTCUSDT'
+            elif symbol == 'CAKEUSDT':
+                return 'CAKEUSDT'
+            else:
+                return symbol.replace('USDT.P', 'USDT')
+        elif exchange == CryptoExchange.BITGET.value and self.bitget_exchange_sandbox_mode:
+            symbol = symbol.replace('USDT.P', 'SUSDT')
+            return f'S{symbol}_SUMCBL'
+        elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
+            symbol = symbol.replace('USDT.P', 'USDT')
+            return f'{symbol}_SUMCBL'
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange, session):
         if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
@@ -282,7 +293,7 @@ class BybitOrderExecute(Action):
                 if not strategy_mgmt.active:
                     continue
                 exchange = self.get_exchange_instance(strategy, strategy_mgmt)
-                exchange_symbol = symbol_translate(tv_alrt.symbol, strategy_mgmt.exchange)
+                exchange_symbol = self.symbol_translate(tv_alrt.symbol, strategy_mgmt.exchange)
                 if (strategy.direction == 'long' and tv_alrt.action == 'buy') or (
                         strategy.direction == 'short' and tv_alrt.action == 'sell'):
                     if strategy_mgmt.active_order:
