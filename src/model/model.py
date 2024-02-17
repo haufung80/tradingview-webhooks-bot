@@ -96,6 +96,7 @@ class Strategy(Base, BaseMixin):
         else:
             return open_price - closed_price - total_fee
 
+
 class StrategyManagement(Base, BaseMixin):
     __tablename__ = 'strategy_management'
     strat_mgmt_id = Column(String(100), unique=True)
@@ -149,36 +150,15 @@ class BybitOrderResponse:
     payload: str
 
 
-class BybitFetchOrderResponse:
+@validate_arguments
+@dataclass
+class BitgetOrderResponse:
     def __init__(self, resp):
-        self.order_status = resp['info']['orderStatus']
-        self.created_time = resp['info']['createdTime']
+        self.id = resp['id']
         self.payload = str(resp)
 
-        self.avg_price = float(resp['info']['avgPrice'])
-        self.cum_exec_value = float(resp['info']['cumExecValue'])
-        self.updated_time = resp['info']['updatedTime']
-        self.filled = float(resp['filled'])
-        self.cum_exec_fee = float(resp['info']['cumExecFee'])
-
-    order_status: str
-    created_time: str
+    id: str
     payload: str
-
-    avg_price: float
-    cum_exec_value: float
-    updated_time: str
-    filled: float
-    cum_exec_fee: float
-
-    def get_open_datetime(self):
-        return datetime.fromtimestamp(int(self.created_time) / 1000, pytz.timezone('Asia/Nicosia'))
-
-    def get_fill_datetime(self):
-        return datetime.fromtimestamp(int(self.updated_time) / 1000, pytz.timezone('Asia/Nicosia'))
-
-    def get_fee_rate(self):
-        return self.cum_exec_fee / self.cum_exec_value
 
 
 class CryptoExchange(Enum):
@@ -190,3 +170,63 @@ class ExchangeOrderStatus(Enum):
     BYBIT_NEW = 'New'
     BYBIT_PARTIALLY_FILLED = 'PartiallyFilled'
     BYBIT_FILLED = 'Filled'
+    BYBIT_CANCELLED = 'Cancelled'
+    BITGET_NEW = 'new'
+    BITGET_PARTIALLY_FILLED = 'partiallyfilled'
+    BITGET_FILLED = 'filled'
+    BITGET_CANCELLED = 'canceled'
+
+
+class FetchOrderResponse:
+    order_status: str
+    created_time: int
+    payload: str
+
+    avg_price: float
+    cum_exec_value: float
+    updated_time: int
+    filled: float
+    _cum_exec_fee: float
+
+    def get_open_datetime(self):
+        return datetime.fromtimestamp(self.created_time / 1000, pytz.timezone('Asia/Nicosia'))
+
+    def get_fill_datetime(self):
+        return datetime.fromtimestamp(self.updated_time / 1000, pytz.timezone('Asia/Nicosia'))
+
+    def get_fee_rate(self):
+        return abs(self._cum_exec_fee / self.cum_exec_value)
+
+    def get_total_fee(self):
+        return abs(self._cum_exec_fee)
+
+
+class BybitFetchOrderResponse(FetchOrderResponse):
+    def __init__(self, resp):
+        self.order_status = resp['info']['orderStatus']
+        self.created_time = int(resp['info']['createdTime'])
+        self.payload = str(resp)
+
+        self.avg_price = float(resp['info']['avgPrice'])
+        self.cum_exec_value = float(resp['info']['cumExecValue'])
+        self.updated_time = int(resp['info']['updatedTime'])
+        self.filled = float(resp['filled'])
+        self._cum_exec_fee = float(resp['info']['cumExecFee'])
+
+
+class BitgetFetchOrderResponse(FetchOrderResponse):
+    def __init__(self, resp):
+        self.order_status = resp['info']['state']
+        self.created_time = resp['timestamp']
+        self.payload = str(resp)
+
+        self.cum_exec_value = resp['cost']
+        self.updated_time = resp['lastUpdateTimestamp']
+        self.filled = resp['filled']
+        if resp['average'] is not None:
+            self.avg_price = resp['average']
+        self._cum_exec_fee = resp['fee']['cost']
+
+
+class BitgetErrorCode(Enum):
+    ORDER_PRICE_HIGER_THAN_BID_PRICE = "40815"

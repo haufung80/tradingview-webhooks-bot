@@ -8,8 +8,8 @@ Feature: Placing Order to different exchanges
 
     Examples:
       | strategy_id                       | action | price | symbol    | exchange | source      |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_FXS | buy    | 20    | FXSUSDT.P | BYBIT    | tradingview |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_FXS | sell   | 20    | FXSUSDT.P | BYBIT    | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | buy    | 60000 | BTCUSDT.P | BYBIT    | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | sell   | 60000 | BTCUSDT.P | BYBIT    | tradingview |
 
 
 #Scenario Outline: Filter duplicated alert
