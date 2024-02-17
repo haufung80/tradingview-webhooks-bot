@@ -240,7 +240,7 @@ class BybitOrderExecute(Action):
             return f'S{symbol}_SUMCBL'
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
             symbol = symbol.replace('USDT.P', 'USDT')
-            return f'{symbol}_SUMCBL'
+            return f'{symbol}_UMCBL'
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange, session):
         if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
