@@ -359,21 +359,32 @@ class BybitOrderExecute(Action):
                 strategy_mgmt: StrategyManagement
                 if not strategy_mgmt.active:
                     continue
-                self.place_order_in_exchange(tv_alrt, strategy, strategy_mgmt, session)
+                try:
+                    self.place_order_in_exchange(tv_alrt, strategy, strategy_mgmt, session)
+                except Exception as e:
+                    print(traceback.format_exc())
+                    with Session(engine) as session:
+                        session.add(OrderExecutionError(
+                            alert_id=tv_alrt.id,
+                            error=str(e),
+                            error_stack=traceback.format_exc(),
+                            exchange=strategy_mgmt.exchange
+                        ))
+                        session.commit()
 
     def process_msg(self, data):
         tv_alrt = TradingViewAlert(data)
         if is_duplicate_alert(tv_alrt):
             _ = add_alert_history(tv_alrt)
             return
-        alert_id = add_alert_history(tv_alrt)
+        tv_alrt.id = add_alert_history(tv_alrt)
         try:
             self.place_order(tv_alrt)
         except Exception as e:
             print(traceback.format_exc())
             with Session(engine) as session:
                 session.add(OrderExecutionError(
-                    alert_id=alert_id,
+                    alert_id=tv_alrt.id,
                     error=str(e),
                     error_stack=traceback.format_exc()
                 ))

@@ -112,6 +112,7 @@ class OrderExecutionError(Base, BaseMixin):
     alert_id = Column(INTEGER(10))
     error = Column(String())
     error_stack = Column(String())
+    exchange = Column(String(20))
 
 
 class TradingViewAlert:
@@ -125,6 +126,7 @@ class TradingViewAlert:
         self.source = resp['data']['source']
         self.payload = str(resp['data'])
 
+    id: int
     strategy_id: str
     action: str
     price: float
