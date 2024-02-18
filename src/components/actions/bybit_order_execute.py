@@ -279,9 +279,7 @@ class BybitOrderExecute(Action):
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             action = bitget_action(alrt.action)
-
             try:
-                print(exchange_symbol, action, formatted_amount, alrt.price)
                 order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, alrt.price)
             except ccxt.ExchangeError as e:
                 if f'''"code":"{BitgetErrorCode.ORDER_PRICE_HIGER_THAN_BID_PRICE.value}"''' in str(e):
