@@ -276,6 +276,8 @@ class BybitOrderExecute(Action):
                 formatted_amount = 0.005
             elif exchange_symbol == 'ETH/USDT:USDT' and amount < 0.05:
                 formatted_amount = 0.05
+            elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
+                formatted_amount = 1
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             action = bitget_action(alrt.action)
