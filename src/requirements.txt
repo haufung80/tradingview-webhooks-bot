@@ -15,7 +15,7 @@ Werkzeug==2.2.3
 zipp==3.15.0
 ib_insync
 retry
-ccxt
+ccxt==4.1.31
 futu-api
 alembic
 sqlalchemy
