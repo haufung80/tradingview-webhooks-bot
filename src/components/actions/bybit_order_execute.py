@@ -162,9 +162,17 @@ def bybit_close_market_order(exchange, exchange_symbol, action, amt):
 
 
 def bitget_close_market_order(exchange, exchange_symbol, action, amt):
+    action = bitget_action(action)
     open_mkt_order = BitgetOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
     return open_mkt_order, BitgetFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
+
+
+def bitget_action(action):
+    if action == 'buy':
+        return 'buy_single'
+    else:
+        return 'sell_single'
 
 
 class BybitOrderExecute(Action):
@@ -236,10 +244,10 @@ class BybitOrderExecute(Action):
             else:
                 return symbol.replace('USDT.P', 'USDT')
         elif exchange == CryptoExchange.BITGET.value and self.bitget_exchange_sandbox_mode:
-            symbol = symbol.replace('USDT.P', 'SUSDT')
-            return f'S{symbol}_SUMCBL'
+            symbol = symbol.replace('USDT.P', '/SUSDT')
+            return f'S{symbol}:SUSDT'
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
-            symbol = symbol.replace('USDT', '/USDT')
+            symbol = symbol.replace('USDT.P', '/USDT')
             return f'{symbol}:USDT'
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange, session):
@@ -260,17 +268,22 @@ class BybitOrderExecute(Action):
             strategy_mgmt.active_order = True
         elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
-            if exchange_symbol == 'SBTCSUSDT_SUMCBL' and amount < 0.005:
+            if exchange_symbol == 'SBTC/SUSDT:SUSDT' and amount < 0.005:
                 formatted_amount = 0.005
-            elif exchange_symbol == 'SETHSUSDT_SUMCBL' and amount < 0.05:
+            elif exchange_symbol == 'SETH/SUSDT:SUSDT' and amount < 0.05:
+                formatted_amount = 0.05
+            elif exchange_symbol == 'BTC/USDT:USDT' and amount < 0.005:
+                formatted_amount = 0.005
+            elif exchange_symbol == 'ETH/USDT:USDT' and amount < 0.05:
                 formatted_amount = 0.05
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+            action = bitget_action(alrt.action)
             try:
-                order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount, alrt.price)
+                order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, alrt.price)
             except ccxt.ExchangeError as e:
                 if f'''"code":"{BitgetErrorCode.ORDER_PRICE_HIGER_THAN_BID_PRICE.value}"''' in str(e):
-                    order_payload = exchange.create_market_order(exchange_symbol, alrt.action, formatted_amount,
+                    order_payload = exchange.create_market_order(exchange_symbol, action, formatted_amount,
                                                                  alrt.price)
                 else:
                     raise e
