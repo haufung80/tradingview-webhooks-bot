@@ -279,6 +279,7 @@ class BybitOrderExecute(Action):
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             action = bitget_action(alrt.action)
+            exchange.set_position_mode(False, exchange_symbol)
             try:
                 order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, alrt.price)
             except ccxt.ExchangeError as e:
