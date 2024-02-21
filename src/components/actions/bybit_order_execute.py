@@ -53,7 +53,6 @@ def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, form
         exchange=strategy_mgmt.exchange,
         order_payload_1=order.payload
     ))
-    session.commit()
 
 
 def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr,
@@ -266,10 +265,9 @@ class BybitOrderExecute(Action):
             order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
                                                         alrt.price)
             order_rsp = BybitOrderResponse(order_payload)
-
             add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
                                     alrt)
-            strategy_mgmt.active_order = True
+
         elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
             if exchange_symbol == 'SBTC/SUSDT:SUSDT' and amount < 0.005:
@@ -297,7 +295,6 @@ class BybitOrderExecute(Action):
 
             add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
                                     alrt)
-            strategy_mgmt.active_order = True
 
     def place_order_in_exchange(self, tv_alrt, strategy, strategy_mgmt, session):
         exchange = self.get_exchange_instance(strategy, strategy_mgmt)
@@ -307,6 +304,7 @@ class BybitOrderExecute(Action):
             if strategy_mgmt.active_order:
                 raise Exception("There are still active order when opening position")
             self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
+            strategy_mgmt.active_order = True
             session.commit()
         elif (strategy.direction == 'long' and tv_alrt.action == 'sell') or (
                 strategy.direction == 'short' and tv_alrt.action == 'buy'):
@@ -382,14 +380,13 @@ class BybitOrderExecute(Action):
                     self.place_order_in_exchange(tv_alrt, strategy, strategy_mgmt, session)
                 except Exception as e:
                     print(traceback.format_exc())
-                    with Session(engine) as session:
-                        session.add(OrderExecutionError(
-                            alert_id=tv_alrt.id,
-                            error=str(e),
-                            error_stack=traceback.format_exc(),
-                            exchange=strategy_mgmt.exchange
-                        ))
-                        session.commit()
+                    session.add(OrderExecutionError(
+                        alert_id=tv_alrt.id,
+                        error=str(e),
+                        error_stack=traceback.format_exc(),
+                        exchange=strategy_mgmt.exchange
+                    ))
+                    session.commit()
 
     def process_msg(self, data):
         tv_alrt = TradingViewAlert(data)
