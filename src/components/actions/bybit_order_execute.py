@@ -208,9 +208,21 @@ class BybitOrderExecute(Action):
             'secret': BITGET_API_SECRET
         })
 
+        OKEX_PASSWORD = config['OkexSettings']['password']
+        OKEX_API_KEY = config['OkexSettings']['key']
+        OKEX_API_SECRET = config['OkexSettings']['secret']
+        self.okex_exchange = ccxt.okex({
+            'password': OKEX_PASSWORD,
+            'apiKey': OKEX_API_KEY,
+            'secret': OKEX_API_SECRET
+        })
+
         if config['BybitSettings']['set_sandbox_mode'] == 'True':
             self.bybit_exchange.set_sandbox_mode(True)
             self.bybit_exchange_per.set_sandbox_mode(True)
+
+        if config['OkexSettings']['set_sandbox_mode'] == 'True':
+            self.okex_exchange.set_sandbox_mode(True)
 
         if config['BitgetSettings']['set_sandbox_mode'] == 'True':
             self.bitget_exchange.set_sandbox_mode(True)
@@ -219,9 +231,11 @@ class BybitOrderExecute(Action):
         self.bybit_exchange.check_required_credentials()  # raises AuthenticationError
         self.bybit_exchange_per.check_required_credentials()  # raises AuthenticationError
         self.bitget_exchange.check_required_credentials()  # raises AuthenticationError
+        self.okex_exchange.check_required_credentials()  # raises AuthenticationError
         markets = self.bybit_exchange.load_markets()
         markets1 = self.bybit_exchange_per.load_markets()
         markets2 = self.bitget_exchange.load_markets()
+        markets3 = self.okex_exchange.load_markets()
 
     def get_exchange_instance(self, strat: Strategy, strat_mgmt: StrategyManagement):
         if strat_mgmt.exchange == CryptoExchange.BYBIT.value:
@@ -247,7 +261,7 @@ class BybitOrderExecute(Action):
             return f'S{symbol}:SUSDT'
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
             if symbol == 'SHIB1000USDT.P':
-                return 'SHIBUSDT:USDT'
+                return 'SHIB/USDT:USDT'
             elif symbol == 'CAKEUSDT':
                 return 'CAKE/USDT'
             symbol = symbol.replace('USDT.P', '/USDT')
