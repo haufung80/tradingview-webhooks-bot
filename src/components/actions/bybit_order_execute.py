@@ -291,6 +291,13 @@ class BybitOrderExecute(Action):
         elif exchange == CryptoExchange.BITGET.value and self.bitget_exchange_sandbox_mode:
             symbol = symbol.replace('USDT.P', '/SUSDT')
             return f'S{symbol}:SUSDT'
+        elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
+            if symbol == 'SHIB1000USDT.P':
+                return 'SHIB/USDT:USDT'
+            elif symbol == 'CAKEUSDT':
+                return 'CAKE/USDT'
+            symbol = symbol.replace('USDT.P', '/USDT')
+            return f'{symbol}:USDT'
         elif exchange == CryptoExchange.OKEX.value:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT'
