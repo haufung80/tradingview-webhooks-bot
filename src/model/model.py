@@ -254,10 +254,16 @@ class OkexFetchOrderResponse(FetchOrderResponse):
 
         self.cum_exec_value = resp['cost']
         self.updated_time = resp['lastUpdateTimestamp']
-        self.filled = resp['filled']
         if resp['average'] is not None:
             self.avg_price = resp['average']
-        self._cum_exec_fee = float(resp['info']['fee'])
+        if resp['info']['feeCcy'] != 'USDT' \
+                and resp[
+            'average'] is not None:  # when trading spot fee is calculated in the coin itself. 'average' could be null when it is cancelling order
+            self._cum_exec_fee = abs(float(resp['info']['fee'])) * self.avg_price
+            self.filled = resp['filled'] - abs(float(resp['info']['fee']))
+        else:
+            self._cum_exec_fee = abs(float(resp['info']['fee']))
+            self.filled = resp['filled']
 
 
 class BitgetErrorCode(Enum):

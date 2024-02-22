@@ -141,7 +141,7 @@ def bitget_update_filled_order_history(eoh, epo):
     eoh.total_fund = eoh.total_fund - epo.get_total_fee()
 
 
-def okex_update_filled_order_history(eoh, epo):
+def okex_update_filled_order_history(eoh, epo: OkexFetchOrderResponse):
     eoh.avg_price = epo.avg_price
     eoh.exec_value = epo.cum_exec_value
     eoh.fill_timestamp = epo.updated_time
@@ -206,6 +206,7 @@ class BybitOrderExecute(Action):
     bybit_exchange_per: Any
     bitget_exchange: Any
     bitget_exchange_sandbox_mode = False
+    okex_exchange_sandbox_mode = False
 
     def __init__(self):
         super().__init__()
@@ -250,6 +251,7 @@ class BybitOrderExecute(Action):
 
         if config['OkexSettings']['set_sandbox_mode'] == 'True':
             self.okex_exchange.set_sandbox_mode(True)
+            self.okex_exchange_sandbox_mode = True
 
         if config['BitgetSettings']['set_sandbox_mode'] == 'True':
             self.bitget_exchange.set_sandbox_mode(True)
@@ -284,8 +286,6 @@ class BybitOrderExecute(Action):
                 return 'WEMIXUSDT'
             elif symbol == 'WBTCUSDT':
                 return 'WBTCUSDT'
-            elif symbol == 'CAKEUSDT':
-                return 'CAKEUSDT'
             else:
                 return symbol.replace('USDT.P', 'USDT')
         elif exchange == CryptoExchange.BITGET.value and self.bitget_exchange_sandbox_mode:
@@ -294,7 +294,7 @@ class BybitOrderExecute(Action):
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT:USDT'
-            elif symbol == 'CAKEUSDT':
+            elif symbol == 'CAKEUSDT.P':
                 return 'CAKE/USDT'
             symbol = symbol.replace('USDT.P', '/USDT')
             return f'{symbol}:USDT'
@@ -359,13 +359,16 @@ class BybitOrderExecute(Action):
 
         elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
+            params = {}
+            if not self.okex_exchange_sandbox_mode:
+                params = {'tdMode': 'spot_isolated'}
             if exchange_symbol == 'SHIB/USDT':
-                formatted_amount = 1000 * amount
+                formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             try:
                 order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount, alrt.price,
-                                                            params={'tdMode': 'spot_isolated'})
+                                                            params=params)
             except ccxt.ExchangeError as e:
                 if f'''"sCode":"{OkexErrorCode.THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS.value}"''' in str(
                         e) or f'''"sCode":"{OkexErrorCode.THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS.value}"''' in str(e):
