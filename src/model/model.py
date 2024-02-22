@@ -163,9 +163,21 @@ class BitgetOrderResponse:
     payload: str
 
 
+@validate_arguments
+@dataclass
+class OkexOrderResponse:
+    def __init__(self, resp):
+        self.id = resp['id']
+        self.payload = str(resp)
+
+    id: str
+    payload: str
+
+
 class CryptoExchange(Enum):
     BYBIT = 'BYBIT'
     BITGET = 'BITGET'
+    OKEX = 'OKEX'
 
 
 class ExchangeOrderStatus(Enum):
@@ -177,6 +189,10 @@ class ExchangeOrderStatus(Enum):
     BITGET_PARTIALLY_FILLED = 'partiallyfilled'
     BITGET_FILLED = 'filled'
     BITGET_CANCELLED = 'canceled'
+    OKEX_NEW = 'live'
+    OKEX_PARTIALLY_FILLED = 'partially_filled'
+    OKEX_FILLED = 'filled'
+    OKEX_CANCELLED = 'canceled'
 
 
 class FetchOrderResponse:
@@ -230,5 +246,25 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
         self._cum_exec_fee = resp['fee']['cost']
 
 
+class OkexFetchOrderResponse(FetchOrderResponse):
+    def __init__(self, resp):
+        self.order_status = resp['info']['state']
+        self.created_time = resp['timestamp']
+        self.payload = str(resp)
+
+        self.cum_exec_value = resp['cost']
+        self.updated_time = resp['lastUpdateTimestamp']
+        self.filled = resp['filled']
+        if resp['average'] is not None:
+            self.avg_price = resp['average']
+        self._cum_exec_fee = float(resp['info']['fee'])
+
+
 class BitgetErrorCode(Enum):
-    ORDER_PRICE_HIGER_THAN_BID_PRICE = "40815"
+    ORDER_PRICE_HIGHER_THAN_BID_PRICE = "40815"
+    ORDER_PRICE_LOWER_THAN_BID_PRICE = "40816"
+
+
+class OkexErrorCode(Enum):
+    THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS = "51136"
+    THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS = "51137"
