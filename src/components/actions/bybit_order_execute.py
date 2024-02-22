@@ -339,6 +339,8 @@ class BybitOrderExecute(Action):
                 formatted_amount = 0.05
             elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
                 formatted_amount = 1
+            elif exchange_symbol == 'SHIB/USDT:USDT':
+                formatted_amount = 1000 * amount
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             action = self.bitget_action(alrt.action)
@@ -357,7 +359,10 @@ class BybitOrderExecute(Action):
 
         elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
-            formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+            if exchange_symbol == 'SHIB/USDT':
+                formatted_amount = 1000 * amount
+            else:
+                formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             try:
                 order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount, alrt.price)
             except ccxt.ExchangeError as e:
