@@ -351,7 +351,10 @@ class BybitOrderExecute(Action):
                     alrt.price = alrt.price / 1000
                     amount = 1000 * amount
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-            action = self.bitget_action(alrt.action)
+            if ':USDT' in exchange_symbol:  # it is future order not spot order
+                action = self.bitget_action(alrt.action)
+            else:
+                action = alrt.action
             try:
                 order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, alrt.price)
             except ccxt.ExchangeError as e:
