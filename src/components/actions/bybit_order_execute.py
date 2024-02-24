@@ -291,6 +291,10 @@ class BybitOrderExecute(Action):
                 return 'SHIB/USDT:USDT'
             elif symbol == 'CAKEUSDT.P':
                 return 'CAKE/USDT'
+            elif symbol == 'HNTUSDT.P':
+                return 'HNT/USDT'
+            elif symbol == 'CROUSDT.P':
+                return 'CRO/USDT'
             symbol = symbol.replace('USDT.P', '/USDT').replace('USDT', '/USDT')
             return f'{symbol}:USDT'
         elif exchange == CryptoExchange.OKEX.value:
