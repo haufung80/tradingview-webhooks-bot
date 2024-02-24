@@ -282,27 +282,21 @@ class BybitOrderExecute(Action):
 
     def symbol_translate(self, symbol, exchange):
         if exchange == CryptoExchange.BYBIT.value:
-            if symbol == 'WEMIXUSDT':
-                return 'WEMIXUSDT'
-            elif symbol == 'WBTCUSDT':
-                return 'WBTCUSDT'
-            else:
-                return symbol.replace('USDT.P', 'USDT')
+            return symbol.replace('USDT.P', 'USDT')
         elif exchange == CryptoExchange.BITGET.value and self.bitget_exchange_sandbox_mode:
-            symbol = symbol.replace('USDT.P', '/SUSDT')
+            symbol = symbol.replace('USDT.P', '/SUSDT').replace('USDT', '/SUSDT')
             return f'S{symbol}:SUSDT'
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT:USDT'
             elif symbol == 'CAKEUSDT.P':
                 return 'CAKE/USDT'
-            symbol = symbol.replace('USDT.P', '/USDT')
+            symbol = symbol.replace('USDT.P', '/USDT').replace('USDT', '/USDT')
             return f'{symbol}:USDT'
         elif exchange == CryptoExchange.OKEX.value:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT'
-            symbol = symbol.replace('USDT.P', '/USDT')
-            return f'{symbol}'
+            return symbol.replace('USDT.P', '/USDT').replace('USDT', '/USDT')
 
     def bitget_action(self, action):
         if self.bitget_exchange_sandbox_mode:
