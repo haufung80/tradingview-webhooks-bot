@@ -346,9 +346,9 @@ class BybitOrderExecute(Action):
                 formatted_amount = 0.05
             elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
                 formatted_amount = 1
-            elif exchange_symbol == 'SHIB/USDT:USDT':
-                formatted_amount = 1000 * amount
             else:
+                if exchange_symbol == 'SHIB/USDT:USDT':
+                    amount = 1000 * amount
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             action = self.bitget_action(alrt.action)
             try:
