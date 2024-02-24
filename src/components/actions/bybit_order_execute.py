@@ -284,7 +284,10 @@ class BybitOrderExecute(Action):
         if exchange == CryptoExchange.BYBIT.value:
             return symbol.replace('USDT.P', 'USDT')
         elif exchange == CryptoExchange.BITGET.value and self.bitget_exchange_sandbox_mode:
-            symbol = symbol.replace('USDT.P', '/SUSDT').replace('USDT', '/SUSDT')
+            if 'USDT.P' in symbol:
+                symbol = symbol.replace('USDT.P', '/SUSDT')
+            else:
+                symbol = symbol.replace('USDT', '/SUSDT')
             return f'S{symbol}:SUSDT'
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
             if symbol == 'SHIB1000USDT.P':
@@ -295,12 +298,18 @@ class BybitOrderExecute(Action):
                 return 'HNT/USDT'
             elif symbol == 'CROUSDT.P':
                 return 'CRO/USDT'
-            symbol = symbol.replace('USDT.P', '/USDT').replace('USDT', '/USDT')
+            if 'USDT.P' in symbol:
+                symbol = symbol.replace('USDT.P', '/USDT')
+            else:
+                symbol = symbol.replace('USDT', '/USDT')
             return f'{symbol}:USDT'
         elif exchange == CryptoExchange.OKEX.value:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT'
-            return symbol.replace('USDT.P', '/USDT').replace('USDT', '/USDT')
+            if 'USDT.P' in symbol:
+                return symbol.replace('USDT.P', '/USDT')
+            else:
+                return symbol.replace('USDT', '/USDT')
 
     def bitget_action(self, action):
         if self.bitget_exchange_sandbox_mode:
