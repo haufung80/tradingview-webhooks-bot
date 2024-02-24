@@ -181,6 +181,7 @@ delete from strategy; \g
 \copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 'BYBIT' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));\g
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 'BITGET' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));\g
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
 ```
 
 #### Code deployment
@@ -212,7 +213,7 @@ alembic upgrade head
 #### How much should I put in my copy trade acc?
 
 ```bash
-select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id
+select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id and sm.exchange = 'BYBIT'
 and personal_acc is not true 
 and active is true)
 ```
