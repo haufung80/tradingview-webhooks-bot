@@ -348,15 +348,10 @@ class BybitOrderExecute(Action):
                 formatted_amount = 1
             else:
                 if exchange_symbol == 'SHIB/USDT:USDT':
+                    alrt.price = alrt.price / 1000
                     amount = 1000 * amount
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             action = self.bitget_action(alrt.action)
-            print("amount")
-            print(amount)
-            print("exchange_symbol")
-            print(exchange_symbol)
-            print("price")
-            print(alrt.price)
             try:
                 order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, alrt.price)
             except ccxt.ExchangeError as e:
@@ -376,6 +371,7 @@ class BybitOrderExecute(Action):
             if not self.okex_exchange_sandbox_mode:
                 params = {'tdMode': 'spot_isolated'}
             if exchange_symbol == 'SHIB/USDT':
+                alrt.price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
