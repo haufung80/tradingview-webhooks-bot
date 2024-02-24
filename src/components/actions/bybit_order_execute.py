@@ -298,6 +298,10 @@ class BybitOrderExecute(Action):
                 return 'HNT/USDT'
             elif symbol == 'CROUSDT.P':
                 return 'CRO/USDT'
+            elif symbol == 'WBTCUSDT.P':
+                return 'WBTC/USDT'
+            elif symbol == 'WEMIXUSDT.P':
+                return 'WEMIX/USDT'
             if 'USDT.P' in symbol:
                 symbol = symbol.replace('USDT.P', '/USDT')
             else:
@@ -341,6 +345,8 @@ class BybitOrderExecute(Action):
             elif exchange_symbol == 'SETH/SUSDT:SUSDT' and amount < 0.05:
                 formatted_amount = 0.05
             elif exchange_symbol == 'BTC/USDT:USDT' and amount < 0.005:
+                formatted_amount = 0.005
+            elif exchange_symbol == 'WBTC/USDT' and amount < 0.005:
                 formatted_amount = 0.005
             elif exchange_symbol == 'ETH/USDT:USDT' and amount < 0.05:
                 formatted_amount = 0.05
