@@ -195,15 +195,9 @@ def bitget_close_market_order(exchange, exchange_symbol, action, amt):
     return open_mkt_order, BitgetFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
 
 
-def okex_close_market_order(exchange, exchange_symbol, action, amt):
-    print("exchange_symbol")
-    print(exchange_symbol)
-    print("action")
-    print(action)
-    print("amt")
-    print(amt)
+def okex_close_market_order(exchange, exchange_symbol, action, amt, params):
     open_mkt_order = OkexOrderResponse(
-        exchange.create_market_order(exchange_symbol, action, amt))
+        exchange.create_market_order(exchange_symbol, action, amt, params))
     return open_mkt_order, OkexFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
 
 
@@ -485,9 +479,12 @@ class BybitOrderExecute(Action):
                                              tv_alrt, strategy_mgmt)
                 elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.OKEX_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.OKEX_PARTIALLY_FILLED.value):
+                    params = {}
+                    if not self.okex_exchange_sandbox_mode:
+                        params = {'tdMode': 'spot_isolated'}
                     open_mkt_order, closed_mkt_order = okex_close_market_order(exchange, exchange_symbol,
                                                                                tv_alrt.action,
-                                                                               existing_order_hist.filled_amt)
+                                                                               existing_order_hist.filled_amt, params)
                     fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
                                                              existing_order_hist.exec_value,
                                                              closed_mkt_order.get_total_fee())
