@@ -379,19 +379,21 @@ class BybitOrderExecute(Action):
             params = {}
             # if not self.okex_exchange_sandbox_mode:
             #     params = {'tdMode': 'spot_isolated'}
+            okex_odr_price = alrt.price
             if exchange_symbol == 'SHIB/USDT':
-                alrt.price = alrt.price / 1000
+                okex_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             try:
-                order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount, alrt.price,
+                order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
+                                                            okex_odr_price,
                                                             params=params)
             except ccxt.ExchangeError as e:
                 if f'''"sCode":"{OkexErrorCode.THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS.value}"''' in str(
                         e) or f'''"sCode":"{OkexErrorCode.THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS.value}"''' in str(e):
                     order_payload = exchange.create_market_order(exchange_symbol, alrt.action, formatted_amount,
-                                                                 alrt.price)
+                                                                 okex_odr_price)
                 else:
                     raise e
             order_rsp = OkexOrderResponse(order_payload)
