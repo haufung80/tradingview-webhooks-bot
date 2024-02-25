@@ -196,6 +196,12 @@ def bitget_close_market_order(exchange, exchange_symbol, action, amt):
 
 
 def okex_close_market_order(exchange, exchange_symbol, action, amt):
+    print("exchange_symbol")
+    print(exchange_symbol)
+    print("action")
+    print(action)
+    print("amt")
+    print(amt)
     open_mkt_order = OkexOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
     return open_mkt_order, OkexFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
