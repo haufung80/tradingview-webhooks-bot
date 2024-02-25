@@ -377,8 +377,8 @@ class BybitOrderExecute(Action):
         elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
             params = {}
-            if not self.okex_exchange_sandbox_mode:
-                params = {'tdMode': 'spot_isolated'}
+            # if not self.okex_exchange_sandbox_mode:
+            #     params = {'tdMode': 'spot_isolated'}
             if exchange_symbol == 'SHIB/USDT':
                 alrt.price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
@@ -480,8 +480,8 @@ class BybitOrderExecute(Action):
                 elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.OKEX_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.OKEX_PARTIALLY_FILLED.value):
                     params = {}
-                    if not self.okex_exchange_sandbox_mode:
-                        params = {'tdMode': 'spot_isolated'}
+                    # if not self.okex_exchange_sandbox_mode:
+                    #     params = {'tdMode': 'spot_isolated'}
                     open_mkt_order, closed_mkt_order = okex_close_market_order(exchange, exchange_symbol,
                                                                                tv_alrt.action,
                                                                                existing_order_hist.filled_amt, params)
