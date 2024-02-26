@@ -37,7 +37,7 @@ def add_alert_history(alert: TradingViewAlert):
 
 
 def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount,
-                            alrt: TradingViewAlert):
+                            alrt: TradingViewAlert, executed_price):
     session.add(OrderHistory(
         order_id=order.id,
         strategy_id=alrt.strategy_id,
@@ -47,8 +47,8 @@ def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, form
         order_price=alrt.price,
         order_amt=formatted_amount,
         active=True,
-        position_size=alrt.price * float(formatted_amount) / strategy_mgmt.fund,
-        position_fund=alrt.price * float(formatted_amount),
+        position_size=executed_price * float(formatted_amount) / strategy_mgmt.fund,
+        position_fund=executed_price * float(formatted_amount),
         total_fund=strategy_mgmt.fund,
         exchange=strategy_mgmt.exchange,
         order_payload_1=order.payload
@@ -336,7 +336,7 @@ class BybitOrderExecute(Action):
                                                         alrt.price)
             order_rsp = BybitOrderResponse(order_payload)
             add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                                    alrt)
+                                    alrt, alrt.price)
 
         elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
@@ -373,7 +373,7 @@ class BybitOrderExecute(Action):
                     raise e
             order_rsp = BitgetOrderResponse(order_payload)
             add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                                    alrt)
+                                    alrt, bitget_odr_price)
 
         elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
@@ -399,7 +399,7 @@ class BybitOrderExecute(Action):
                     raise e
             order_rsp = OkexOrderResponse(order_payload)
             add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                                    alrt)
+                                    alrt, okex_odr_price)
 
     def place_order_in_exchange(self, tv_alrt, strategy, strategy_mgmt, session):
         exchange = self.get_exchange_instance(strategy, strategy_mgmt)
