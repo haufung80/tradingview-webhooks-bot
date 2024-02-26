@@ -340,6 +340,7 @@ class BybitOrderExecute(Action):
 
         elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
+            bitget_odr_price = alrt.price
             if exchange_symbol == 'SBTC/SUSDT:SUSDT' and amount < 0.005:
                 formatted_amount = 0.005
             elif exchange_symbol == 'SETH/SUSDT:SUSDT' and amount < 0.05:
@@ -353,21 +354,21 @@ class BybitOrderExecute(Action):
             elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
                 formatted_amount = 1
             else:
-                if exchange_symbol == 'SHIB/USDT:USDT':
-                    alrt.price = alrt.price / 1000
-                    amount = 1000 * amount
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+                if exchange_symbol == 'SHIB/USDT:USDT':
+                    bitget_odr_price = alrt.price / 1000
+                    formatted_amount = exchange.amount_to_precision(exchange_symbol, amount * 1000)
             if ':USDT' in exchange_symbol:  # it is future order not spot order
                 action = self.bitget_action(alrt.action)
             else:
                 action = alrt.action
             try:
-                order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, alrt.price)
+                order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, bitget_odr_price)
             except ccxt.ExchangeError as e:
                 if f'''"code":"{BitgetErrorCode.ORDER_PRICE_HIGHER_THAN_BID_PRICE.value}"''' in str(
                         e) or f'''"code":"{BitgetErrorCode.ORDER_PRICE_LOWER_THAN_BID_PRICE.value}"''' in str(e):
                     order_payload = exchange.create_market_order(exchange_symbol, action, formatted_amount,
-                                                                 alrt.price)
+                                                                 bitget_odr_price)
                 else:
                     raise e
             order_rsp = BitgetOrderResponse(order_payload)
