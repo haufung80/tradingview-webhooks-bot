@@ -324,8 +324,8 @@ class BybitOrderExecute(Action):
             return 'sell_single'
 
     def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange, session):
+        amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
         if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
-            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
             if exchange_symbol == 'BTCUSDT' and amount < 0.001:
                 formatted_amount = 0.001
             elif exchange_symbol == 'ETHUSDT' and amount < 0.01:
@@ -339,7 +339,6 @@ class BybitOrderExecute(Action):
                                     alrt, alrt.price)
 
         elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
-            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
             bitget_odr_price = alrt.price
             if exchange_symbol == 'SBTC/SUSDT:SUSDT' and amount < 0.005:
                 formatted_amount = 0.005
@@ -376,7 +375,6 @@ class BybitOrderExecute(Action):
                                     alrt, bitget_odr_price)
 
         elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
-            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
             params = {}
             # if not self.okex_exchange_sandbox_mode:
             #     params = {'tdMode': 'spot_isolated'}
