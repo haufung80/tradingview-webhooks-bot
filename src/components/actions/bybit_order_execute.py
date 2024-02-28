@@ -298,7 +298,7 @@ class BybitOrderExecute(Action):
                 return 'HNT/USDT'
             elif symbol == 'CROUSDT.P':
                 return 'CRO/USDT'
-            elif symbol == 'WBTCUSDT.P':
+            elif symbol == 'WBTCUSDT':
                 return 'WBTC/USDT'
             elif symbol == 'WEMIXUSDT.P':
                 return 'WEMIX/USDT'
@@ -392,7 +392,7 @@ class BybitOrderExecute(Action):
                 if f'''"sCode":"{OkexErrorCode.THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS.value}"''' in str(
                         e) or f'''"sCode":"{OkexErrorCode.THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS.value}"''' in str(e):
                     order_payload = exchange.create_market_order(exchange_symbol, alrt.action, formatted_amount,
-                                                                 okex_odr_price)
+                                                                 params=params)
                 else:
                     raise e
             order_rsp = OkexOrderResponse(order_payload)
