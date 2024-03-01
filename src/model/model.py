@@ -188,6 +188,7 @@ class ExchangeOrderStatus(Enum):
     BITGET_NEW = 'new'
     BITGET_PARTIALLY_FILLED = 'partiallyfilled'
     BITGET_FILLED = 'filled'
+    BITGET_SPOT_FILLED = 'full_fill'
     BITGET_CANCELLED = 'canceled'
     OKEX_NEW = 'live'
     OKEX_PARTIALLY_FILLED = 'partially_filled'
@@ -234,7 +235,10 @@ class BybitFetchOrderResponse(FetchOrderResponse):
 
 class BitgetFetchOrderResponse(FetchOrderResponse):
     def __init__(self, resp):
-        self.order_status = resp['info']['state']
+        if resp['info']['state'] is not None:
+            self.order_status = resp['info']['state']
+        else:
+            self.order_status = resp['info']['status']  # spot order
         self.created_time = resp['timestamp']
         self.payload = str(resp)
 

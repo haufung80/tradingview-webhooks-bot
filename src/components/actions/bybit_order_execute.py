@@ -425,7 +425,6 @@ class BybitOrderExecute(Action):
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
-                    print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     existing_pos_order = BitgetFetchOrderResponse(
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     bitget_update_initial_order_history(existing_order_hist, existing_pos_order)
@@ -446,7 +445,7 @@ class BybitOrderExecute(Action):
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
                     bybit_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and (
-                        existing_pos_order.order_status == ExchangeOrderStatus.BITGET_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value):
+                        existing_pos_order.order_status == ExchangeOrderStatus.BITGET_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value):
                     bitget_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
                 elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.OKEX_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.OKEX_PARTIALLY_FILLED.value):
@@ -466,7 +465,7 @@ class BybitOrderExecute(Action):
                                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                                              tv_alrt, strategy_mgmt)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and (
-                        existing_pos_order.order_status == ExchangeOrderStatus.BITGET_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value):
+                        existing_pos_order.order_status == ExchangeOrderStatus.BITGET_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value):
                     action = self.bitget_action(tv_alrt.action)
                     open_mkt_order, closed_mkt_order = bitget_close_market_order(exchange, exchange_symbol,
                                                                                  action,
