@@ -425,6 +425,7 @@ class BybitOrderExecute(Action):
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
+                    print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     existing_pos_order = BitgetFetchOrderResponse(
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     bitget_update_initial_order_history(existing_order_hist, existing_pos_order)
