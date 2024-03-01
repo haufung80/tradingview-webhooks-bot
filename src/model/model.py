@@ -236,10 +236,6 @@ class BybitFetchOrderResponse(FetchOrderResponse):
 
 class BitgetFetchOrderResponse(FetchOrderResponse):
     def __init__(self, resp):
-        if hasattr(resp['info'], 'state'):
-            self.order_status = resp['info']['state']
-        else:
-            self.order_status = resp['info']['status']  # spot order
         self.created_time = resp['timestamp']
         self.payload = str(resp)
 
