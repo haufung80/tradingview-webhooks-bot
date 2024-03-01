@@ -243,12 +243,19 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
         self.payload = str(resp)
 
         self.cum_exec_value = resp['cost']
-        self.updated_time = resp['lastUpdateTimestamp']
-        self.filled = resp['filled']
         if resp['average'] is not None:
             self.avg_price = resp['average']
-        self._cum_exec_fee = resp['fee']['cost']
+        if '_SPBL' in resp['info']['symbol']:
+            self.order_status = resp['info']['status']
+            self.filled = resp['filled'] - abs(float(resp['info']['feeDetail']['newFees']['r']))
+            self._cum_exec_fee = abs(float(resp['info']['feeDetail']['newFees']['r'])) * self.avg_price
+            self.updated_time = resp['timestamp']
 
+        else:
+            self.order_status = resp['info']['state']
+            self._cum_exec_fee = resp['fee']['cost']
+            self.filled = resp['filled']
+            self.updated_time = resp['lastUpdateTimestamp']
 
 class OkexFetchOrderResponse(FetchOrderResponse):
     def __init__(self, resp):
