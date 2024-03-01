@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -247,8 +248,9 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
             self.avg_price = resp['average']
         if '_SPBL' in resp['info']['symbol']:
             self.order_status = resp['info']['status']
-            self.filled = resp['filled'] - abs(float(resp['info']['feeDetail']['newFees']['r']))
-            self._cum_exec_fee = abs(float(resp['info']['feeDetail']['newFees']['r'])) * self.avg_price
+            fee_detail = json.loads(resp['info']['feeDetail'])
+            self.filled = resp['filled'] - abs(float(fee_detail['newFees']['r']))
+            self._cum_exec_fee = abs(float(fee_detail['newFees']['r'])) * self.avg_price
             self.updated_time = resp['timestamp']
 
         else:
