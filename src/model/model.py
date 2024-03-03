@@ -242,6 +242,8 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
         self.cum_exec_value = resp['cost']
         if resp['average'] is not None:
             self.avg_price = resp['average']
+        else:
+            self.avg_price = 0.0  # just to aviod err, dunno what happen
         if '_SPBL' in resp['info']['symbol']:
             self.order_status = resp['info']['status']
             fee_detail = json.loads(resp['info']['feeDetail'])
