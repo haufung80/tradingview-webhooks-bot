@@ -186,18 +186,21 @@ def okex_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
 def bybit_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BybitOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
+    print(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
     return open_mkt_order, BybitFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
 
 
 def bitget_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BitgetOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
+    print(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
     return open_mkt_order, BitgetFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
 
 
 def okex_close_market_order(exchange, exchange_symbol, action, amt, params):
     open_mkt_order = OkexOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt, params))
+    print(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
     return open_mkt_order, OkexFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
 
 
@@ -421,14 +424,17 @@ class BybitOrderExecute(Action):
             if existing_order_hist.active:
                 existing_pos_order = None
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
+                    print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     existing_pos_order = BybitFetchOrderResponse(
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
+                    print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     existing_pos_order = BitgetFetchOrderResponse(
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     bitget_update_initial_order_history(existing_order_hist, existing_pos_order)
                 elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
+                    print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     existing_pos_order = OkexFetchOrderResponse(
                         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
                     okex_update_initial_order_history(existing_order_hist, existing_pos_order)
