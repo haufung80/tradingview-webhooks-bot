@@ -92,7 +92,7 @@ class Strategy(Base, BaseMixin):
     personal_acc = Column(Boolean())
 
     def calculate_fund_diff(self, closed_price, open_price, total_fee):
-        if self.direction == 'long':
+        if self.direction == StrategyDirection.LONG.value:
             return closed_price - open_price - total_fee
         else:
             return open_price - closed_price - total_fee
@@ -257,6 +257,7 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
             self.filled = resp['filled']
             self.updated_time = resp['lastUpdateTimestamp']
 
+
 class OkexFetchOrderResponse(FetchOrderResponse):
     def __init__(self, resp):
         self.order_status = resp['info']['state']
@@ -285,3 +286,8 @@ class BitgetErrorCode(Enum):
 class OkexErrorCode(Enum):
     THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS = "51136"
     THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS = "51137"
+
+
+class StrategyDirection(Enum):
+    LONG = "LONG"
+    SHORT = "SHORT"
