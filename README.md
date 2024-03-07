@@ -181,7 +181,7 @@ delete from strategy; \g
 \copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 'BYBIT' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));\g
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 'BITGET' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));\g
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where direction = 'long' or direction = 'LONG' and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
 ```
 
 #### Code deployment
@@ -224,4 +224,32 @@ and active is true)
 select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id
 and personal_acc is true 
 and active is true)
+```
+
+#### run test
+
+thfwork@TangdeMBP features % pytest --html=report.html
+
+#### check debug log
+
+1. error is output to a txt in server
+
+```bash
+select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
+```
+
+### insert strategy from jupyter
+
+1. Copy the strategy from table, header as well
+2. remove the parameter column
+3. reformat the header as below
+
+```bash
+backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol
+```
+
+4. import with following command
+
+```bash
+\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER QUOTE '\"' ESCAPE '''';"
 ```
