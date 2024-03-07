@@ -181,7 +181,7 @@ delete from strategy; \g
 \copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 'BYBIT' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));\g
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 'BITGET' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));\g
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where direction = 'long' or direction = 'LONG' and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
 ```
 
 #### Code deployment
@@ -234,6 +234,7 @@ thfwork@TangdeMBP features % pytest --html=report.html
 
 1. error is output to a txt in server
 
+2. Useful DB query
 ```bash
 select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
 ```
