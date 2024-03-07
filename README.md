@@ -167,7 +167,7 @@ if the order is partially filled:
 
 ### Deployment
 
-#### Insert strategy from jupyter to dev DB
+#### I. Insert strategy from jupyter to dev DB
 
 1. Copy the strategy from table, header as well
 2. remove the parameter column
@@ -183,7 +183,37 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 \copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER QUOTE '\"' ESCAPE '''';"
 ```
 
-#### Strategy deployment
+#### II. Create Alert in tradingview
+
+1. modify strategy code accordingly for the strategy
+2. add alert, enable webhook with URL pointing http://192.53.123.86/webhook
+3. Message sample is as follow, Alert name is same as strategy_id
+
+```bash
+{
+    "key": "BybitWebhook:xxxxx",
+    "data": {
+            "strategy_id": "SMA_CROSSOVER_LONG_1D_BTC",
+            "action": "{{strategy.order.action}}",
+            "price": "{{strategy.order.price}}",
+            "timestamp": "{{timenow}}",
+            "symbol": "{{ticker}}",
+            "exchange": "{{exchange}}",
+            "source": "tradingview",
+            "position_size": "{{strategy.position_size}}",
+            "noofcontracts": "{{strategy.order.contracts}}",
+            "orderid": "{{strategy.order.id}}",
+            "comment": "{{strategy.order.comment}}",
+            "alert_msg": "{{strategy.order.alert_message}}",
+            "market_position": "{{strategy.market_position}}",
+            "market_position_size": "{{strategy.market_position_size}}",
+            "prev_market_position": "{{strategy.prev_market_position}}",
+            "prev_market_position_size": "{{strategy.prev_market_position_size}}"
+        }
+}
+```
+
+#### III. Strategy deployment
 
 1. export the table from production to /strategy_backup/strategy_{yyyymmdd}.csv
 2. pull and make change in local for same files
