@@ -4,12 +4,17 @@ Feature: Placing Order to different exchanges
 
   Scenario Outline: Placing Order to Bybit Exchange
     Given Incoming tradingview alert of <strategy_id>,<action>,<price>,<symbol>,<exchange>,<source>
+    Then There should be one order_history added
     Then There should be no error
 
     Examples:
       | strategy_id                       | action | price | symbol    | exchange | source      |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | buy    | 60000 | BTCUSDT.P | BYBIT    | tradingview |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | sell   | 60000 | BTCUSDT.P | BYBIT    | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | buy    | 69000 | BTCUSDT.P | BYBIT    | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | sell   | 69000 | BTCUSDT.P | BYBIT    | tradingview |
+      | SMA_CROSSOVER_LONG_1D_BTC         | buy    | 69000 | BTCUSDT.P | BITGET   | tradingview |
+      | SMA_CROSSOVER_LONG_1D_BTC         | sell   | 69000 | BTCUSDT.P | BITGET   | tradingview |
+      | STOCH_OSCILL_MOMENTUM_4H_BTC      | buy    | 69000 | BTCUSDT.P | OKEX     | tradingview |
+      | STOCH_OSCILL_MOMENTUM_4H_BTC      | sell   | 69000 | BTCUSDT.P | OKEX     | tradingview |
 
 
 #Scenario Outline: Filter duplicated alert
