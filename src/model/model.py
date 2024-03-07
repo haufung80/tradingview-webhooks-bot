@@ -227,12 +227,20 @@ class BybitFetchOrderResponse(FetchOrderResponse):
         self.created_time = int(resp['info']['createdTime'])
         self.payload = str(resp)
 
+        self.updated_time = int(resp['info']['updatedTime'])
         self.avg_price = float(resp['info']['avgPrice'])
         self.cum_exec_value = float(resp['info']['cumExecValue'])
-        self.updated_time = int(resp['info']['updatedTime'])
-        self.filled = float(resp['filled'])
         self._cum_exec_fee = float(resp['info']['cumExecFee'])
-
+        if ':USDT' in resp['symbol'] or (':USDT' not in resp['symbol'] and resp[
+            'side'] == 'sell'):  # meaning it is contract or selling spot order
+            self.filled = float(resp['filled'])
+            self.cum_exec_value = float(resp['info']['cumExecValue'])
+            self._cum_exec_fee = float(resp['info']['cumExecFee'])
+        else:  # buying spot logic
+            self.cum_exec_value = float(resp['info']['cumExecValue'])
+            self._cum_exec_fee = float(
+                resp['info']['cumExecFee']) * self.avg_price  # cumExecFee is the number in the coins you buy
+            self.filled = float(resp['filled']) - float(resp['info']['cumExecFee'])
 
 class BitgetFetchOrderResponse(FetchOrderResponse):
     def __init__(self, resp):
@@ -289,5 +297,5 @@ class OkexErrorCode(Enum):
 
 
 class StrategyDirection(Enum):
-    LONG = "LONG"
-    SHORT = "SHORT"
+    LONG = "long"
+    SHORT = "short"
