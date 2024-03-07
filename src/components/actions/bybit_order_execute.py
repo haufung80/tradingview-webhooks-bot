@@ -326,8 +326,12 @@ class BybitOrderExecute(Action):
         else:
             return 'sell_single'
 
-    def send_limit_order(self, strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange, session):
-        amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
+    def send_limit_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange,
+                         session):
+        if strategy.leverage is None or strategy.leverage == 0:
+            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
+        else:
+            amount = ((strategy_mgmt.fund * strategy.position_size) / alrt.price) * strategy.leverage
         if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
             if exchange_symbol == 'BTCUSDT' and amount < 0.001:
                 formatted_amount = 0.001
@@ -405,15 +409,19 @@ class BybitOrderExecute(Action):
     def place_order_in_exchange(self, tv_alrt, strategy, strategy_mgmt, session):
         exchange = self.get_exchange_instance(strategy, strategy_mgmt)
         exchange_symbol = self.symbol_translate(tv_alrt.symbol, strategy_mgmt.exchange)
-        if (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'buy') or (
-                strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'sell'):
+        if (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'buy') or \
+                (strategy.direction == StrategyDirection.OLD_LONG.value and tv_alrt.action == 'buy') or \
+                (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'sell') or \
+                (strategy.direction == StrategyDirection.OLD_SHORT.value and tv_alrt.action == 'sell'):
             if strategy_mgmt.active_order:
                 raise Exception("There are still active order when opening position")
             self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
             session.commit()
-        elif (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'sell') or (
-                strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'buy'):
+        elif (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'sell') or \
+                (strategy.direction == StrategyDirection.OLD_LONG.value and tv_alrt.action == 'sell') or \
+                (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'buy') or (
+                strategy.direction == StrategyDirection.OLD_SHORT.value and tv_alrt.action == 'buy'):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
             existing_order_hist: OrderHistory = session.execute(select(OrderHistory)

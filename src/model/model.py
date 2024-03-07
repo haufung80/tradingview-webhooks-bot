@@ -109,7 +109,7 @@ class Strategy(Base, BaseMixin):
     timeframe = Column(String(20))
 
     def calculate_fund_diff(self, closed_price, open_price, total_fee):
-        if self.direction == StrategyDirection.LONG.value:
+        if self.direction == StrategyDirection.LONG.value or self.direction == StrategyDirection.OLD_LONG.value:
             return closed_price - open_price - total_fee
         else:
             return open_price - closed_price - total_fee
@@ -315,5 +315,7 @@ class OkexErrorCode(Enum):
 
 
 class StrategyDirection(Enum):
-    LONG = "long"
-    SHORT = "short"
+    LONG = "LONG"
+    SHORT = "SHORT"
+    OLD_LONG = "long"
+    OLD_SHORT = "short"
