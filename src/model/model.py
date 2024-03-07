@@ -104,6 +104,7 @@ class StrategyManagement(Base, BaseMixin):
     strategy_id = Column(String(50))
     active_order = Column(Boolean())
     fund = Column(Float())
+    init_fund = Column(Float())
     exchange = Column(String(50))
     active = Column(Boolean())
 
