@@ -167,6 +167,22 @@ if the order is partially filled:
 
 ### Deployment
 
+#### Insert strategy from jupyter to dev DB
+
+1. Copy the strategy from table, header as well
+2. remove the parameter column
+3. reformat the header as below
+
+```bash
+backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol
+```
+
+4. import with following command
+
+```bash
+\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER QUOTE '\"' ESCAPE '''';"
+```
+
 #### Strategy deployment
 
 1. export the table from production to /strategy_backup/strategy_{yyyymmdd}.csv
@@ -183,6 +199,9 @@ insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 'BITGET' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));\g
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
 ```
+
+6. enable the strategy as active
+7. enable the strategy_mangement as active (if the pair is not traded in exchange, disable it)
 
 #### Code deployment
 
@@ -237,20 +256,4 @@ thfwork@TangdeMBP features % pytest --html=report.html
 2. Useful DB query
 ```bash
 select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
-```
-
-### insert strategy from jupyter
-
-1. Copy the strategy from table, header as well
-2. remove the parameter column
-3. reformat the header as below
-
-```bash
-backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol
-```
-
-4. import with following command
-
-```bash
-\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER QUOTE '\"' ESCAPE '''';"
 ```
