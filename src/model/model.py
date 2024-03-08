@@ -246,7 +246,7 @@ class BybitFetchOrderResponse(FetchOrderResponse):
         self.payload = str(resp)
 
         self.updated_time = int(resp['info']['updatedTime'])
-        if self.order_status == ExchangeOrderStatus.BYBIT_FILLED or self.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED:
+        if self.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or self.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value:
             self.avg_price = float(resp['info']['avgPrice'])
         self.cum_exec_value = float(resp['info']['cumExecValue'])
         self._cum_exec_fee = float(resp['info']['cumExecFee'])
