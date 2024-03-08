@@ -156,8 +156,7 @@ def okex_update_filled_order_history(eoh, epo: OkexFetchOrderResponse):
 def bybit_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
     open_cnl_order = BybitOrderResponse(
         exchange.cancel_order(eoh.order_id, exchange_symbol))
-    cls_cnl_order = BybitFetchOrderResponse(
-        exchange.fetch_order(open_cnl_order.id, exchange_symbol))
+    cls_cnl_order = BybitFetchOrderResponse(bybit_fetch_order(exchange, open_cnl_order.id, exchange_symbol))
     eoh.order_payload_2 = cls_cnl_order.payload  # overriding above
     eoh.order_status = cls_cnl_order.order_status
     eoh.active = False
@@ -186,7 +185,7 @@ def okex_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
 def bybit_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BybitOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
-    order_resp = exchange.fetch_closed_order(open_mkt_order.id, exchange_symbol)
+    order_resp = bybit_fetch_order(exchange, open_mkt_order.id, exchange_symbol)
     print(order_resp)
     return open_mkt_order, BybitFetchOrderResponse(order_resp)
 
@@ -205,6 +204,13 @@ def okex_close_market_order(exchange, exchange_symbol, action, amt, params):
     order_resp = exchange.fetch_order(open_mkt_order.id, exchange_symbol)
     print(order_resp)
     return open_mkt_order, OkexFetchOrderResponse(order_resp)
+
+
+def bybit_fetch_order(exchange, order_id, exchange_symbol):
+    try:
+        return exchange.fetch_closed_order(order_id, exchange_symbol)
+    except ccxt.OrderNotFound:
+        return exchange.fetch_open_order(order_id, exchange_symbol)
 
 
 class BybitOrderExecute(Action):
@@ -435,10 +441,7 @@ class BybitOrderExecute(Action):
             if existing_order_hist.active:
                 existing_pos_order = None
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
-                    try:
-                        order_resp = exchange.fetch_closed_order(existing_order_hist.order_id, exchange_symbol)
-                    except ccxt.OrderNotFound:
-                        order_resp = exchange.fetch_open_order(existing_order_hist.order_id, exchange_symbol)
+                    order_resp = bybit_fetch_order(exchange, existing_order_hist.order_id, exchange_symbol)
                     print(order_resp)
                     existing_pos_order = BybitFetchOrderResponse(order_resp)
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
