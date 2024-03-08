@@ -165,8 +165,9 @@ def bybit_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
 def bitget_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
     open_cnl_order = BitgetOrderResponse(
         exchange.cancel_order(eoh.order_id, exchange_symbol))
-    cls_cnl_order = BitgetFetchOrderResponse(
-        exchange.fetch_order(open_cnl_order.id, exchange_symbol))
+    order_resp = exchange.fetch_order(open_cnl_order.id, exchange_symbol)
+    print(order_resp)
+    cls_cnl_order = BitgetFetchOrderResponse(order_resp)
     eoh.order_payload_2 = cls_cnl_order.payload  # overriding above
     eoh.order_status = cls_cnl_order.order_status
     eoh.active = False

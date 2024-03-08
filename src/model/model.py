@@ -204,7 +204,7 @@ class ExchangeOrderStatus(Enum):
     BYBIT_PARTIALLY_FILLED = 'PartiallyFilled'
     BYBIT_FILLED = 'Filled'
     BYBIT_CANCELLED = 'Cancelled'
-    BITGET_NEW = 'new'
+    BITGET_NEW = 'open'
     BITGET_PARTIALLY_FILLED = 'partiallyfilled'
     BITGET_FILLED = 'filled'
     BITGET_SPOT_FILLED = 'full_fill'
@@ -261,6 +261,7 @@ class BybitFetchOrderResponse(FetchOrderResponse):
                 resp['info']['cumExecFee']) * self.avg_price  # cumExecFee is the number in the coins you buy
             self.filled = float(resp['filled']) - float(resp['info']['cumExecFee'])
 
+
 class BitgetFetchOrderResponse(FetchOrderResponse):
     def __init__(self, resp):
         self.created_time = resp['timestamp']
@@ -270,17 +271,28 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
         if resp['average'] is not None:
             self.avg_price = resp['average']
         else:
-            self.avg_price = 0.0  # just to aviod err, dunno what happen
-        if '_SPBL' in resp['info']['symbol']:
-            self.order_status = resp['info']['status']
+            self.avg_price = 0.0  # just to avoid err, dunno what happen
+
+        self.order_status = resp['status']
+        if self.order_status == 'closed':  # closed status imply it is filled/full_filled/partially_filled
+            if 'state' in resp['info'].keys():
+                self.order_status = resp['info']['state']  # contract order status is here
+            else:
+                self.order_status = resp['info']['status']  # spot order status is here
+
+        if ('_SPBL' in resp['info']['symbol'] or ':USDT' not in resp['symbol']) and resp['side'] == 'buy' and resp[
+            'status'] == 'close':  # when buying spot and it is filled, fee is calculated in the coin you buy, '_SPBL' is the copy trade pair
             fee_detail = json.loads(resp['info']['feeDetail'])
             self.filled = resp['filled'] - abs(float(fee_detail['newFees']['r']))
             self._cum_exec_fee = abs(float(fee_detail['newFees']['r'])) * self.avg_price
             self.updated_time = resp['timestamp']
-
         else:
-            self.order_status = resp['info']['state']
-            self._cum_exec_fee = resp['fee']['cost']
+            if self.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value or \
+                    self.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or \
+                    self.order_status == ExchangeOrderStatus.BITGET_FILLED.value:
+                self._cum_exec_fee = resp['fee']['cost']
+            else:
+                self._cum_exec_fee = 0
             self.filled = resp['filled']
             self.updated_time = resp['lastUpdateTimestamp']
 
