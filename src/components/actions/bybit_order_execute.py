@@ -186,22 +186,25 @@ def okex_cancel_unfilled_new_order(eoh, exchange, exchange_symbol):
 def bybit_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BybitOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
-    print(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
-    return open_mkt_order, BybitFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
+    order_resp = exchange.fetch_closed_order(open_mkt_order.id, exchange_symbol)
+    print(order_resp)
+    return open_mkt_order, BybitFetchOrderResponse(order_resp)
 
 
 def bitget_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BitgetOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
-    print(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
-    return open_mkt_order, BitgetFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
+    order_resp = exchange.fetch_order(open_mkt_order.id, exchange_symbol)
+    print(order_resp)
+    return open_mkt_order, BitgetFetchOrderResponse(order_resp)
 
 
 def okex_close_market_order(exchange, exchange_symbol, action, amt, params):
     open_mkt_order = OkexOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt, params))
-    print(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
-    return open_mkt_order, OkexFetchOrderResponse(exchange.fetch_order(open_mkt_order.id, exchange_symbol))
+    order_resp = exchange.fetch_order(open_mkt_order.id, exchange_symbol)
+    print(order_resp)
+    return open_mkt_order, OkexFetchOrderResponse(order_resp)
 
 
 class BybitOrderExecute(Action):
@@ -242,7 +245,7 @@ class BybitOrderExecute(Action):
         OKEX_PASSWORD = config['OkexSettings']['password']
         OKEX_API_KEY = config['OkexSettings']['key']
         OKEX_API_SECRET = config['OkexSettings']['secret']
-        self.okex_exchange = ccxt.okex({
+        self.okex_exchange = ccxt.okx({
             'password': OKEX_PASSWORD,
             'apiKey': OKEX_API_KEY,
             'secret': OKEX_API_SECRET
@@ -432,9 +435,12 @@ class BybitOrderExecute(Action):
             if existing_order_hist.active:
                 existing_pos_order = None
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
-                    print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
-                    existing_pos_order = BybitFetchOrderResponse(
-                        exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
+                    try:
+                        order_resp = exchange.fetch_closed_order(existing_order_hist.order_id, exchange_symbol)
+                    except ccxt.OrderNotFound:
+                        order_resp = exchange.fetch_open_order(existing_order_hist.order_id, exchange_symbol)
+                    print(order_resp)
+                    existing_pos_order = BybitFetchOrderResponse(order_resp)
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
                     print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
