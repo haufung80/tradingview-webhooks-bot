@@ -192,7 +192,7 @@ def bybit_close_market_order(exchange, exchange_symbol, action, amt):
 
 def bitget_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BitgetOrderResponse(
-        exchange.create_market_order(exchange_symbol, action, amt))
+        exchange.create_market_order(exchange_symbol, action, amt, params={'oneWayMode': True}))
     order_resp = exchange.fetch_order(open_mkt_order.id, exchange_symbol)
     print(order_resp)
     return open_mkt_order, BitgetFetchOrderResponse(order_resp)
@@ -327,14 +327,6 @@ class BybitOrderExecute(Action):
             else:
                 return symbol.replace('USDT', '/USDT')
 
-    def bitget_action(self, action):
-        if self.bitget_exchange_sandbox_mode:
-            return action
-        if action == 'buy':
-            return 'buy_single'
-        else:
-            return 'sell_single'
-
     def send_limit_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange,
                          session):
         if strategy.leverage is None or strategy.leverage == 0:
@@ -373,17 +365,15 @@ class BybitOrderExecute(Action):
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount * 1000)
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-            if ':USDT' in exchange_symbol:  # it is future order not spot order
-                action = self.bitget_action(alrt.action)
-            else:
-                action = alrt.action
+            action = alrt.action
             try:
-                order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, bitget_odr_price)
+                order_payload = exchange.create_limit_order(exchange_symbol, action, formatted_amount, bitget_odr_price,
+                                                            params={'oneWayMode': True})
             except ccxt.ExchangeError as e:
                 if f'''"code":"{BitgetErrorCode.ORDER_PRICE_HIGHER_THAN_BID_PRICE.value}"''' in str(
                         e) or f'''"code":"{BitgetErrorCode.ORDER_PRICE_LOWER_THAN_BID_PRICE.value}"''' in str(e):
                     order_payload = exchange.create_market_order(exchange_symbol, action, formatted_amount,
-                                                                 bitget_odr_price)
+                                                                 bitget_odr_price, params={'oneWayMode': True})
                 else:
                     raise e
             order_rsp = BitgetOrderResponse(order_payload)
@@ -489,7 +479,7 @@ class BybitOrderExecute(Action):
                                              tv_alrt, strategy_mgmt)
                 elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BITGET_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value):
-                    action = self.bitget_action(tv_alrt.action)
+                    action = tv_alrt.action
                     open_mkt_order, closed_mkt_order = bitget_close_market_order(exchange, exchange_symbol,
                                                                                  action,
                                                                                  existing_order_hist.filled_amt)
