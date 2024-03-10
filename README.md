@@ -180,7 +180,7 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 4. import with following command
 
 ```bash
-\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER;
+\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/strategy_bck.csv' CSV HEADER;
 ```
 
 #### II. Create Alert in tradingview
@@ -218,10 +218,10 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 1. Set Strategy as Active, Config Strategy to use personal_acc
 
 ```bash
-update strategy set active = true where strategy_id like 'BOLL_BAND_MOMENTUM_LONG_1D_%';
-update strategy set active = true where strategy_id like 'SMA_CROSSOVER_LONG_1D_%';
-update strategy set active = true where strategy_id like 'BOLL_BAND_REVERSION_LONG_1D%';
-update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', 'WEMIX', 'CRO');
+update strategy set active = true where strategy_name = 'BTC_SOPR_MOMENTUM_LONG_1D';
+update strategy set active = true where strategy_name = 'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D';
+update strategy set active = true where strategy_name = 'MACD_CROSSOVER_LONG_1D';
+update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC');
 ```
 
 3. export the table from production to /strategy_backup/strategy_{yyyymmdd}.csv
@@ -233,7 +233,7 @@ update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', '
 ```bash
 psql 'postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
 delete from strategy; \g
-\copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
+\copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_bck.csv' delimiter ',' CSV HEADER;
 ```
 
 6. Allocate fund in strategy_management
@@ -243,6 +243,10 @@ insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  300, 300, 'BITGET', true from strategy where symbol in ('BTC', 'ETH', 'SOL') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 100, 'OKEX', true from strategy where symbol in ('BTC', 'ETH', 'SOL') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  0, 0, 'BYBIT', true from strategy where symbol in ('OKB','LEO') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('OKB','LEO') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  300, 300, 'OKEX', false from strategy where symbol in ('OKB','LEO') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  300, 300, 'BYBIT', true from strategy where symbol in ('KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('KCS', 'XMR') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
@@ -250,6 +254,10 @@ insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  150, 150, 'BITGET', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('SC') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('SC') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  150, 150, 'OKEX', true from strategy where symbol in ('SC') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 100, 'BYBIT', true from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 100, 'BITGET', true from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
@@ -307,6 +315,28 @@ thfwork@TangdeMBP features % pytest --html=report.html
 1. error is output to a txt in server
 
 2. Useful DB query
+
 ```bash
 select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
+```
+
+```bash
+select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and strategy_name = 'SMA_CROSSOVER' and active_order = false and exchange = 'BYBIT'
+select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and strategy_name = 'BOLL_BAND_MOMENTUM' and active_order = false and exchange = 'BYBIT'
+select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and strategy_name = 'BOLL_BAND_REVERSION' and active_order = false and exchange = 'BYBIT'
+
+
+delete from strategy_management where strategy_id in (
+'SMA_CROSSOVER_CAKE',
+'SMA_CROSSOVER_HNT',
+'SMA_CROSSOVER_KCS',
+'SMA_CROSSOVER_RUNE',
+'SMA_CROSSOVER_WBTC',
+'BOLL_BAND_REVERSION_BNB',
+'BOLL_BAND_REVERSION_FTM',
+'BOLL_BAND_REVERSION_FXS',
+'BOLL_BAND_REVERSION_KCS',
+'BOLL_BAND_REVERSION_WEMIX',
+'BOLL_BAND_MOMENTUM_EGLD',
+'BOLL_BAND_MOMENTUM_HNT')
 ```
