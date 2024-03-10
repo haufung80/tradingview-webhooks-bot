@@ -361,6 +361,8 @@ class BybitOrderExecute(Action):
                 formatted_amount = 0.05
             elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
                 formatted_amount = 1
+            elif exchange_symbol == 'HNT/USDT' and amount < 1:
+                formatted_amount = 1
             elif exchange_symbol == 'SHIB/USDT:USDT':
                 bitget_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount * 1000)
