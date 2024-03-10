@@ -174,13 +174,13 @@ if the order is partially filled:
 3. reformat the header as below
 
 ```bash
-backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol
+backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol
 ```
 
 4. import with following command
 
 ```bash
-\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,postision_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER QUOTE '\"' ESCAPE '''';"
+\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/xxx.csv' CSV HEADER;
 ```
 
 #### II. Create Alert in tradingview
@@ -225,13 +225,29 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 psql 'postgresql://postgres:XXXX@localhost/tradingview-webhooks-bot'
 delete from strategy; \g
 \copy strategy from '/root/Desktop/tradingview-webhooks-bot/strategy_backup/strategy_2024mmdd.csv' delimiter ',' CSV HEADER;
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 'BYBIT' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));\g
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 'BITGET' from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));\g
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, exchange) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 'OKEX' from strategy where (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));\g
 ```
 
-6. enable the strategy as active
-7. enable the strategy_mangement as active (if the pair is not traded in exchange, disable it)
+6. Set Strategy as Active, Config Strategy to use personal_acc, allocate fund in strategy_management
+
+```bash
+update strategy set active = true where strategy_id like 'BOLL_BAND_MOMENTUM_LONG_1D_%';
+update strategy set active = true where strategy_id like 'SMA_CROSSOVER_LONG_1D_%';
+update strategy set active = true where strategy_id like 'BOLL_BAND_REVERSION_LONG_1D%';
+
+update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', 'WEMIX', 'CRO');
+
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  300, 300, 'BYBIT', true from strategy where symbol in ('KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('KCS', 'XMR') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  150, 150, 'BITGET', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  100, 100, 'BYBIT', true from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  100, 100, 'BITGET', true from strategy where strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  100, 100, 'OKEX', true from strategy where (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+```
 
 #### Code deployment
 
