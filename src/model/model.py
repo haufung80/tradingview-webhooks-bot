@@ -107,6 +107,7 @@ class Strategy(Base, BaseMixin):
     expos = Column(Float())
     leverage = Column(Float())
     timeframe = Column(String(20))
+    is_lev = Column(Boolean())
 
     def calculate_fund_diff(self, closed_price, open_price, total_fee):
         if self.direction == StrategyDirection.LONG.value or self.direction == StrategyDirection.OLD_LONG.value:

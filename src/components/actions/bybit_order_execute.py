@@ -330,7 +330,7 @@ class BybitOrderExecute(Action):
 
     def send_limit_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange,
                          session):
-        if strategy.leverage is None or strategy.leverage == 0:
+        if strategy.leverage is None or strategy.leverage == 0 or not strategy.is_lev or strategy.is_lev is None:
             amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
         else:
             amount = ((strategy_mgmt.fund * strategy.position_size) / alrt.price) * strategy.leverage
