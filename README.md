@@ -171,16 +171,17 @@ if the order is partially filled:
 
 1. Copy the strategy from table, header as well
 2. remove the parameter column
-3. reformat the header as below
+3. add a column of is_lev, determine if to use leverage or not
+4. reformat the header as below
 
 ```bash
-backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol
+backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol,is_lev
 ```
 
 4. import with following command
 
 ```bash
-\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/strategy_bck.csv' CSV HEADER;
+\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol,is_lev) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/strategy_bck.csv' CSV HEADER;
 ```
 
 #### II. Create Alert in tradingview
@@ -220,8 +221,8 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 ```bash
 update strategy set active = true where strategy_name = 'BTC_SOPR_MOMENTUM_LONG_1D';
 update strategy set active = true where strategy_name = 'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D';
-update strategy set active = true where strategy_name = 'MACD_CROSSOVER_LONG_1D';
-update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC');
+update strategy set active = true where strategy_name = 'STOCH_OSCILL_MOMENTUM_LONG_1D';
+update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC', 'ROSE', 'QNT');
 ```
 
 3. export the table from production to /strategy_backup/strategy_{yyyymmdd}.csv
@@ -251,9 +252,9 @@ insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('KCS', 'XMR') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  150, 150, 'BITGET', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  150, 150, 'BITGET', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('SC') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('SC') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
@@ -317,15 +318,19 @@ thfwork@TangdeMBP features % pytest --html=report.html
 2. Useful DB query
 
 ```bash
-select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
+select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack, message_payload from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
 ```
 
 ```bash
-select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and strategy_name = 'SMA_CROSSOVER' and active_order = false and exchange = 'BYBIT'
-select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and strategy_name = 'BOLL_BAND_MOMENTUM' and active_order = false and exchange = 'BYBIT'
-select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and strategy_name = 'BOLL_BAND_REVERSION' and active_order = false and exchange = 'BYBIT'
-
-
+select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and (
+	strategy_name = 'SMA_CROSSOVER' 
+	or strategy_name = 'BOLL_BAND_MOMENTUM' 
+	or strategy_name = 'BOLL_BAND_REVERSION' 
+	or strategy_name = 'BTC_SOPR_MOMENTUM' 
+	or strategy_name = 'MACD_CROSSOVER' 
+	or strategy_name = 'BTC_FEAR_GREED_INDEX_MOMENTUM'
+	or strategy_name = 'STOCH_OSCILL_MOMENTUM') and active_order = false and exchange = 'BYBIT'
+	
 delete from strategy_management where strategy_id in (
 'SMA_CROSSOVER_CAKE',
 'SMA_CROSSOVER_HNT',
@@ -338,5 +343,27 @@ delete from strategy_management where strategy_id in (
 'BOLL_BAND_REVERSION_KCS',
 'BOLL_BAND_REVERSION_WEMIX',
 'BOLL_BAND_MOMENTUM_EGLD',
-'BOLL_BAND_MOMENTUM_HNT')
+'BOLL_BAND_MOMENTUM_HNT',
+'BTC_SOPR_MOMENTUM_ADA',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_RNDR',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_RUNE',
+'MACD_CROSSOVER_RNDR',
+'BTC_SOPR_MOMENTUM_BTC',
+'BTC_SOPR_MOMENTUM_LEO',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_FXS',
+'MACD_CROSSOVER_WBTC',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_OKB',
+'MACD_CROSSOVER_BTC',
+'BOLL_BAND_MOMENTUM_RUNE',
+'MACD_CROSSOVER_XRP',
+'BTC_SOPR_MOMENTUM_SOL',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_CRO',
+'STOCH_OSCILL_MOMENTUM_EGLD',
+'STOCH_OSCILL_MOMENTUM_ETC',
+'STOCH_OSCILL_MOMENTUM_HBAR',
+'STOCH_OSCILL_MOMENTUM_INJ',
+'STOCH_OSCILL_MOMENTUM_MKR',
+'STOCH_OSCILL_MOMENTUM_NEAR',
+'STOCH_OSCILL_MOMENTUM_VET',
+'STOCH_OSCILL_MOMENTUM_WBTC')
 ```
