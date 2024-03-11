@@ -305,6 +305,8 @@ class BybitOrderExecute(Action):
         elif exchange == CryptoExchange.BITGET.value and not self.bitget_exchange_sandbox_mode:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT:USDT'
+            elif symbol == '1000PEPEUSDT.P':
+                return 'PEPE/USDT:USDT'
             elif symbol == 'CAKEUSDT.P':
                 return 'CAKE/USDT'
             elif symbol == 'HNTUSDT.P':
@@ -323,6 +325,8 @@ class BybitOrderExecute(Action):
         elif exchange == CryptoExchange.OKEX.value:
             if symbol == 'SHIB1000USDT.P':
                 return 'SHIB/USDT'
+            elif symbol == '1000PEPEUSDT.P':
+                return 'PEPE/USDT'
             if 'USDT.P' in symbol:
                 return symbol.replace('USDT.P', '/USDT')
             else:
@@ -363,7 +367,8 @@ class BybitOrderExecute(Action):
                 formatted_amount = 1
             elif exchange_symbol == 'HNT/USDT' and amount < 1:
                 formatted_amount = 1
-            elif exchange_symbol == 'SHIB/USDT:USDT':
+            elif exchange_symbol == 'SHIB/USDT:USDT' or \
+                    exchange_symbol == 'PEPE/USDT:USDT':
                 bitget_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount * 1000)
             else:
@@ -388,7 +393,8 @@ class BybitOrderExecute(Action):
             # if not self.okex_exchange_sandbox_mode:
             #     params = {'tdMode': 'spot_isolated'}
             okex_odr_price = alrt.price
-            if exchange_symbol == 'SHIB/USDT':
+            if exchange_symbol == 'SHIB/USDT' or \
+                    exchange_symbol == 'PEPE/USDT':
                 okex_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             else:
