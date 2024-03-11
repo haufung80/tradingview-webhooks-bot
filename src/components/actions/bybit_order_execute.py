@@ -327,6 +327,8 @@ class BybitOrderExecute(Action):
                 return 'SHIB/USDT'
             elif symbol == '1000PEPEUSDT.P':
                 return 'PEPE/USDT'
+            elif symbol == '1000XECUSDT.P':
+                return 'XEC/USDT'
             if 'USDT.P' in symbol:
                 return symbol.replace('USDT.P', '/USDT')
             else:
@@ -394,7 +396,8 @@ class BybitOrderExecute(Action):
             #     params = {'tdMode': 'spot_isolated'}
             okex_odr_price = alrt.price
             if exchange_symbol == 'SHIB/USDT' or \
-                    exchange_symbol == 'PEPE/USDT':
+                    exchange_symbol == 'PEPE/USDT' or \
+                    exchange_symbol == 'XEC/USDT':
                 okex_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             else:
