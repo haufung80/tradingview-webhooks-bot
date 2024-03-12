@@ -309,6 +309,8 @@ class BybitOrderExecute(Action):
                 return 'PEPE/USDT:USDT'
             elif symbol == '1000FLOKIUSDT.P':
                 return 'FLOKI/USDT:USDT'
+            elif symbol == '1000LUNCUSDT.P':
+                return 'LUNC/USDT:USDT'
             elif symbol == 'CAKEUSDT.P':
                 return 'CAKE/USDT'
             elif symbol == 'HNTUSDT.P':
@@ -333,6 +335,8 @@ class BybitOrderExecute(Action):
                 return 'XEC/USDT'
             elif symbol == '1000FLOKIUSDT.P':
                 return 'FLOKI/USDT'
+            elif symbol == '1000LUNCUSDT.P':
+                return 'LUNC/USDT'
             if 'USDT.P' in symbol:
                 return symbol.replace('USDT.P', '/USDT')
             else:
@@ -375,7 +379,8 @@ class BybitOrderExecute(Action):
                 formatted_amount = 1
             elif exchange_symbol == 'SHIB/USDT:USDT' or \
                     exchange_symbol == 'PEPE/USDT:USDT' or \
-                    exchange_symbol == 'FLOKI/USDT:USDT':
+                    exchange_symbol == 'FLOKI/USDT:USDT' or \
+                    exchange_symbol == 'LUNC/USDT:USDT':
                 bitget_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount * 1000)
             else:
@@ -403,7 +408,8 @@ class BybitOrderExecute(Action):
             if exchange_symbol == 'SHIB/USDT' or \
                     exchange_symbol == 'PEPE/USDT' or \
                     exchange_symbol == 'XEC/USDT' or \
-                    exchange_symbol == 'FLOKI/USDT':
+                    exchange_symbol == 'FLOKI/USDT' or \
+                    exchange_symbol == 'LUNC/USDT':
                 okex_odr_price = alrt.price / 1000
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             else:
