@@ -221,8 +221,8 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 ```bash
 update strategy set active = true where strategy_name = 'BTC_SOPR_MOMENTUM_LONG_1D';
 update strategy set active = true where strategy_name = 'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D';
-update strategy set active = true where strategy_name = 'STOCH_OSCILL_MOMENTUM_LONG_1D';
-update strategy set personal_acc = true where symbol in ('WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC', 'ROSE', 'QNT');
+update strategy set active = true where strategy_name = 'SMA_CROSSOVER_LONG_4H';
+update strategy set personal_acc = true where symbol in ('NEO', 'WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC', 'ROSE', 'QNT');
 ```
 
 3. export the table from production to /strategy_backup/strategy_{yyyymmdd}.csv
@@ -252,9 +252,9 @@ insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('KCS', 'XMR') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  150, 150, 'BITGET', true from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('SEI', 'HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  150, 150, 'BITGET', true from strategy where symbol in ('SEI', 'HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('SEI', 'HNT', 'VET', 'WEMIX', 'RUNE', 'CAKE', 'ROSE', 'QNT') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  150, 150, 'BYBIT', true from strategy where symbol in ('SC') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('SC') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
@@ -367,3 +367,10 @@ delete from strategy_management where strategy_id in (
 'STOCH_OSCILL_MOMENTUM_VET',
 'STOCH_OSCILL_MOMENTUM_WBTC')
 ```
+
+select sum(position_size*(expos/100)*sm.init_fund) from strategy s, strategy_management sm where sm.exchange = 'BYBIT'
+and s.strategy_id = sm.strategy_id and is_lev = false and (
+strategy_name = 'BTC_SOPR_MOMENTUM_LONG_1D' or strategy_name = 'BOLL_BAND_REVERSION_LONG_1D' or strategy_name = '
+BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D' or strategy_name = 'STOCH_OSCILL_MOMENTUM_LONG_1D' or strategy_name = '
+MACD_CROSSOVER_LONG_1D' or strategy_name = 'BOLL_BAND_MOMENTUM_LONG_1D' or strategy_name = 'SMA_CROSSOVER_LONG_1D' or
+strategy_name = 'SMA_CROSSOVER_LONG_4H')
