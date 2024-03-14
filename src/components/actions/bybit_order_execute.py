@@ -1,6 +1,7 @@
 import configparser
 import os
 import sys
+import time
 import traceback
 from typing import Any
 
@@ -195,6 +196,12 @@ def bitget_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BitgetOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt, params={'oneWayMode': True}))
     order_resp = exchange.fetch_order(open_mkt_order.id, exchange_symbol)
+    try_count = 0
+    while order_resp['status'] == 'open' and try_count < 4:
+        print("Order Still Open, retrying...")
+        time.sleep(1)
+        order_resp = exchange.fetch_order(open_mkt_order.id, exchange_symbol)
+        try_count += 1
     print(order_resp)
     return open_mkt_order, BitgetFetchOrderResponse(order_resp)
 
