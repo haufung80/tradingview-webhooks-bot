@@ -321,6 +321,10 @@ class BybitOrderExecute(Action):
                 return 'WBTC/USDT'
             elif symbol == 'WEMIXUSDT.P':
                 return 'WEMIX/USDT'
+            elif symbol == 'RAYUSDT':
+                return 'RAY/USDT'
+            elif symbol == 'OSMOUSDT':
+                return 'OSMO/USDT'
             if 'USDT.P' in symbol:
                 symbol = symbol.replace('USDT.P', '/USDT')
             else:
