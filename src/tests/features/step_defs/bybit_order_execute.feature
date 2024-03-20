@@ -9,12 +9,16 @@ Feature: Placing Order to different exchanges
 
     Examples:
       | strategy_id                       | action | price | symbol    | exchange | source      |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | buy    | 69000 | BTCUSDT.P | BYBIT    | tradingview |
-      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | sell   | 69000 | BTCUSDT.P | BYBIT    | tradingview |
-      | SMA_CROSSOVER_LONG_1D_BTC         | buy    | 69000 | BTCUSDT.P | BITGET   | tradingview |
-      | SMA_CROSSOVER_LONG_1D_BTC         | sell   | 69000 | BTCUSDT.P | BITGET   | tradingview |
-      | STOCH_OSCILL_MOMENTUM_4H_BTC      | buy    | 69000 | BTCUSDT.P | OKEX     | tradingview |
-      | STOCH_OSCILL_MOMENTUM_4H_BTC      | sell   | 69000 | BTCUSDT.P | OKEX     | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | buy    | 67000 | BTCUSDT.P | BYBIT    | tradingview |
+      | BTC_FEAR_GREED_INDEX_MOMENTUM_BTC | sell   | 67000 | BTCUSDT.P | BYBIT    | tradingview |
+#      | SMA_CROSSOVER_WBTC | buy    | 69000 | WBTCUSDT | BYBIT    | tradingview |
+#      | SMA_CROSSOVER_WBTC | sell   | 69000 | WBTCUSDT | BYBIT    | tradingview |
+      | SMA_CROSSOVER_LONG_1D_BTC         | buy    | 67000 | BTCUSDT.P | BITGET   | tradingview |
+      | SMA_CROSSOVER_LONG_1D_BTC         | sell   | 67000 | BTCUSDT.P | BITGET   | tradingview |
+#      | MACD_CROSSOVER_WBTC | buy    | 69000 | WBTCUSDT | BITGET    | tradingview |
+#      | MACD_CROSSOVER_WBTC | sell   | 69000 | WBTCUSDT | BITGET    | tradingview |
+      | STOCH_OSCILL_MOMENTUM_LONG_4H_BTC | buy    | 67000 | BTCUSDT.P | OKEX     | tradingview |
+      | STOCH_OSCILL_MOMENTUM_LONG_4H_BTC | sell   | 67000 | BTCUSDT.P | OKEX     | tradingview |
 
 
 #Scenario Outline: Filter duplicated alert
