@@ -219,7 +219,7 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 1. Set Strategy as Active, Config Strategy to use personal_acc
 
 ```bash
-update strategy set active = true where strategy_name = 'BOLL_BAND_REVERSION_LONG_4H';
+update strategy set active = true where strategy_name = 'MACD_CROSSOVER_LONG_4H';
 update strategy set personal_acc = true where symbol in ('XEC', 'ONE', 'TRU', 'QI', 'NEO', 'WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC', 'ROSE', 'QNT', 'KCS');
 ```
 
@@ -327,30 +327,29 @@ thfwork@TangdeMBP features % pytest --html=report.html
 select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_stack, message_payload from alert_history a, order_execution_error o where a.id = o.alert_id and source = 'tradingview' order by a.id desc
 ```
 
-```bash
-select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and 
-	strategy_name in ('SMA_CROSSOVER',
-'BOLL_BAND_MOMENTUM' ,
-'BOLL_BAND_REVERSION' ,
-'BTC_SOPR_MOMENTUM' ,
-'MACD_CROSSOVER' ,
-'BTC_FEAR_GREED_INDEX_MOMENTUM',
-'STOCH_OSCILL_MOMENTUM',
-'SMA_CROSSOVER_4H',
-'BOLL_BAND_MOMENTUM_4H',
-'STOCH_OSCILL_MOMENTUM_4H',
-'BOLL_BAND_REVERSION_4H') and active_order = false and exchange = 'BYBIT'
-	
-delete from strategy_management where strategy_id in ('BOLL_BAND_MOMENTUM_SOL',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_EGLD',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_KCS',
-'MACD_CROSSOVER_BNB',
-'MACD_CROSSOVER_INJ',
-'STOCH_OSCILL_MOMENTUM_SOL')
+```bash	
+delete from strategy_management where strategy_id in ('MACD_CROSSOVER_4H_SOL',
+'MACD_CROSSOVER_4H_NEAR',
+'MACD_CROSSOVER_4H_ASTR',
+'MACD_CROSSOVER_4H_CAKE',
+'MACD_CROSSOVER_4H_ETH',
+'MACD_CROSSOVER_4H_MATIC',
+'MACD_CROSSOVER_4H_VET',
+'MACD_CROSSOVER_4H_BTC',
+'MACD_CROSSOVER_4H_MKR',
+'MACD_CROSSOVER_4H_AVAX',
+'MACD_CROSSOVER_4H_ADA',
+'MACD_CROSSOVER_4H_ACH',
+'MACD_CROSSOVER_4H_SEI',
+'MACD_CROSSOVER_4H_INJ',
+'MACD_CROSSOVER_4H_EGLD',
+'MACD_CROSSOVER_4H_BNB',
+'MACD_CROSSOVER_4H_LINK',
+'MACD_CROSSOVER_4H_BCH')
 ```
 
 ```bash
-select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and 
+select distinct(s.strategy_id) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and (
 	strategy_name in ('SMA_CROSSOVER',
 'BOLL_BAND_MOMENTUM' ,
 'BOLL_BAND_REVERSION' ,
@@ -361,5 +360,6 @@ select distinct(s.strategy_id) from strategy s, strategy_management sm where s.s
 'SMA_CROSSOVER_4H',
 'BOLL_BAND_MOMENTUM_4H',
 'STOCH_OSCILL_MOMENTUM_4H',
-'BOLL_BAND_REVERSION_4H') or strategy_id in ('STOCH_OSCILL_MOMENTUM_LONG_1D_MKR') and active_order = false and exchange = 'BYBIT'
+'BOLL_BAND_REVERSION_4H',
+'MACD_CROSSOVER_4H') or s.strategy_id in ('STOCH_OSCILL_MOMENTUM_LONG_1D_MKR')) and active_order = false and exchange = 'BYBIT'
 ```
