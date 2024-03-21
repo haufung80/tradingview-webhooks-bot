@@ -332,6 +332,8 @@ class BybitOrderExecute(Action):
                 return 'RAY/USDT'
             elif symbol == 'OSMOUSDT':
                 return 'OSMO/USDT'
+            elif symbol == 'RIFUSDT.P':
+                return 'RIF/USDT'
             if 'USDT.P' in symbol:
                 symbol = symbol.replace('USDT.P', '/USDT')
             else:
@@ -364,6 +366,8 @@ class BybitOrderExecute(Action):
                 formatted_amount = 0.001
             elif exchange_symbol == 'ETHUSDT' and amount < 0.01:
                 formatted_amount = 0.01
+            elif exchange_symbol == 'SUIUSDT' and amount < 10:
+                formatted_amount = 10
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
