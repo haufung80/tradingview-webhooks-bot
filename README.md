@@ -219,7 +219,7 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 1. Set Strategy as Active, Config Strategy to use personal_acc
 
 ```bash
-update strategy set active = true where strategy_name = 'MACD_CROSSOVER_LONG_4H';
+update strategy set active = true where strategy_name = 'SMA_CROSSOVER_LONG_4H';
 update strategy set personal_acc = true where symbol in ('XEC', 'ONE', 'TRU', 'QI', 'NEO', 'WBTC', 'HNT', 'VET', 'WEMIX', 'CRO', 'SC', 'ROSE', 'QNT', 'KCS');
 ```
 
