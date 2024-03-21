@@ -328,24 +328,12 @@ select timestamp, a.exchange, strategy_id, action, price, symbol, error, error_s
 ```
 
 ```bash	
-delete from strategy_management where strategy_id in ('MACD_CROSSOVER_4H_SOL',
-'MACD_CROSSOVER_4H_NEAR',
-'MACD_CROSSOVER_4H_ASTR',
-'MACD_CROSSOVER_4H_CAKE',
-'MACD_CROSSOVER_4H_ETH',
-'MACD_CROSSOVER_4H_MATIC',
-'MACD_CROSSOVER_4H_VET',
-'MACD_CROSSOVER_4H_BTC',
-'MACD_CROSSOVER_4H_MKR',
-'MACD_CROSSOVER_4H_AVAX',
-'MACD_CROSSOVER_4H_ADA',
-'MACD_CROSSOVER_4H_ACH',
-'MACD_CROSSOVER_4H_SEI',
-'MACD_CROSSOVER_4H_INJ',
-'MACD_CROSSOVER_4H_EGLD',
-'MACD_CROSSOVER_4H_BNB',
-'MACD_CROSSOVER_4H_LINK',
-'MACD_CROSSOVER_4H_BCH')
+delete from strategy_management where strategy_id in ('SMA_CROSSOVER_LONG_4H_LUNC',
+'SMA_CROSSOVER_LONG_4H_GRT',
+'SMA_CROSSOVER_LONG_4H_WLD',
+'SMA_CROSSOVER_LONG_4H_STX',
+'SMA_CROSSOVER_LONG_4H_FLOKI',
+'SMA_CROSSOVER_LONG_4H_XLM')
 ```
 
 ```bash
@@ -361,5 +349,7 @@ select distinct(s.strategy_id) from strategy s, strategy_management sm where s.s
 'BOLL_BAND_MOMENTUM_4H',
 'STOCH_OSCILL_MOMENTUM_4H',
 'BOLL_BAND_REVERSION_4H',
-'MACD_CROSSOVER_4H') or s.strategy_id in ('STOCH_OSCILL_MOMENTUM_LONG_1D_MKR')) and active_order = false and exchange = 'BYBIT'
+'MACD_CROSSOVER_4H') or 
+s.strategy_id in ('STOCH_OSCILL_MOMENTUM_LONG_1D_MKR',
+'MACD_CROSSOVER_SHORT_4H_BCH')) and active_order = false and exchange = 'BYBIT'
 ```
