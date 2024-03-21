@@ -297,20 +297,18 @@ alembic upgrade head
 
 ### Fund deployment
 
-#### How much should I put in my copy trade acc?
+#### Possible Max Drawdown of my account
 
 ```bash
-select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id and sm.exchange = 'BYBIT'
-and personal_acc is not true 
-and active is true)
+select exchange, sum(sm.init_fund*(-sim_mdd/100)) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and sim_mdd is not null group by exchange;
+select s.personal_acc, sum(sm.init_fund*(-sim_mdd/100)) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and exchange = 'BYBIT' and sim_mdd is not null group by personal_acc;
 ```
 
-#### How much should I put in my personal trade acc?
+#### Required fund for my account
 
 ```bash
-select sum(fund_each_trd), sum(fund_total) from (select position_size*fund fund_each_trd, fund fund_total from strategy s,strategy_management sm where s.strategy_id = sm.strategy_id
-and personal_acc is true 
-and active is true)
+select exchange, sum(sm.fund*position_size*(expos/100)) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and sim_mdd is not null group by exchange;
+select s.personal_acc, sum(sm.init_fund*(-sim_mdd/100)) from strategy s, strategy_management sm where s.strategy_id = sm.strategy_id and exchange = 'BYBIT' and sim_mdd is not null group by personal_acc;
 ```
 
 #### run test
