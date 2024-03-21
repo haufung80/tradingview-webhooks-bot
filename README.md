@@ -175,13 +175,13 @@ if the order is partially filled:
 4. reformat the header as below
 
 ```bash
-backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol,is_lev
+backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,sim_add,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol
 ```
 
 4. import with following command
 
 ```bash
-\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol,is_lev) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/strategy_bck.csv' CSV HEADER;
+\copy public.strategy (backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_mdd,lev_mdd,bnh_mdd,sim_add,lev_add,bnh_add,expos,leverage,position_size,strategy_id,strategy_name,direction,timeframe,symbol) FROM '/Users/thfwork/Desktop/Algo Trading/tradingview-webhooks-bot/strategy_backup/strategy_bck.csv' CSV HEADER;
 ```
 
 #### II. Create Alert in tradingview
@@ -341,83 +341,12 @@ select distinct(s.strategy_id) from strategy s, strategy_management sm where s.s
 'STOCH_OSCILL_MOMENTUM_4H',
 'BOLL_BAND_REVERSION_4H') and active_order = false and exchange = 'BYBIT'
 	
-delete from strategy_management where strategy_id in ('MACD_CROSSOVER_LONG_1D_INJ',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_INJ',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_FET',
-'BOLL_BAND_MOMENTUM_LONG_1D_FET',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_AVAX',
-'BOLL_BAND_MOMENTUM_LONG_1D_VET',
-'BOLL_BAND_MOMENTUM_LONG_1D_INJ',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_BSV',
-'BTC_SOPR_MOMENTUM_LONG_1D_SOL',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_LINK',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_BCH',
-'MACD_CROSSOVER_LONG_1D_CHZ',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_FET',
-'MACD_CROSSOVER_LONG_1D_KCS',
-'MACD_CROSSOVER_LONG_1D_RUNE',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_MKR',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_NEAR',
-'SMA_CROSSOVER_LONG_1D_VET',
-'MACD_CROSSOVER_LONG_1D_BCH',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_AXS',
-'BOLL_BAND_MOMENTUM_LONG_1D_BNB',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_AVAX',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_FTM',
-'BOLL_BAND_REVERSION_LONG_1D_BCH',
-'BOLL_BAND_MOMENTUM_LONG_1D_CRO',
-'MACD_CROSSOVER_LONG_1D_CAKE',
-'BOLL_BAND_REVERSION_LONG_1D_XMR',
-'SMA_CROSSOVER_LONG_1D_ADA',
-'SMA_CROSSOVER_LONG_1D_LINK',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_ROSE',
-'MACD_CROSSOVER_LONG_1D_WEMIX',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_MANA',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_WEMIX',
-'MACD_CROSSOVER_LONG_1D_CRV',
-'BOLL_BAND_MOMENTUM_LONG_1D_ETH',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_EGLD',
-'SMA_CROSSOVER_LONG_1D_AVAX',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_SC',
-'MACD_CROSSOVER_LONG_1D_SHIB',
-'BOLL_BAND_MOMENTUM_LONG_1D_CAKE',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_ETC',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_QNT',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_ETC',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_MATIC',
-'MACD_CROSSOVER_LONG_1D_BTC',
-'BOLL_BAND_MOMENTUM_LONG_1D_BTC',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_XLM',
-'BOLL_BAND_REVERSION_LONG_1D_BSV',
-'MACD_CROSSOVER_LONG_1D_BNB',
-'BTC_SOPR_MOMENTUM_LONG_1D_ADA',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_VET',
-'BTC_SOPR_MOMENTUM_LONG_1D_LEO',
-'BOLL_BAND_MOMENTUM_LONG_1D_WEMIX',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_OKB',
-'BTC_FEAR_GREED_INDEX_MOMENTUM_LONG_1D_BTC',
-'STOCH_OSCILL_MOMENTUM_LONG_1D_MATIC',
-'BOLL_BAND_REVERSION_LONG_1D_FTM',
-'BOLL_BAND_REVERSION_LONG_1D_RUNE',
-'SMA_CROSSOVER_LONG_4H_SUI',
-'BOLL_BAND_REVERSION_LONG_4H_ONE',
-'SMA_CROSSOVER_LONG_4H_NEO',
-'SMA_CROSSOVER_LONG_4H_MINA',
-'BOLL_BAND_MOMENTUM_LONG_4H_FIL',
-'STOCH_OSCILL_MOMENTUM_LONG_4H_SUI',
-'STOCH_OSCILL_MOMENTUM_LONG_4H_RNDR',
-'SMA_CROSSOVER_LONG_4H_FTM',
-'STOCH_OSCILL_MOMENTUM_LONG_4H_FLOKI',
-'STOCH_OSCILL_MOMENTUM_LONG_4H_LTC',
-'SMA_CROSSOVER_LONG_4H_LDO',
-'BOLL_BAND_MOMENTUM_LONG_4H_SAND',
-'STOCH_OSCILL_MOMENTUM_LONG_4H_SOL',
-'SMA_CROSSOVER_LONG_4H_BCH',
-'BOLL_BAND_MOMENTUM_LONG_4H_SHIB',
-'SMA_CROSSOVER_LONG_4H_PEPE',
-'SMA_CROSSOVER_LONG_4H_INJ',
-'BOLL_BAND_MOMENTUM_LONG_4H_FLOKI',
-'BOLL_BAND_REVERSION_LONG_4H_TRX')
+delete from strategy_management where strategy_id in ('BOLL_BAND_MOMENTUM_SOL',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_EGLD',
+'BTC_FEAR_GREED_INDEX_MOMENTUM_KCS',
+'MACD_CROSSOVER_BNB',
+'MACD_CROSSOVER_INJ',
+'STOCH_OSCILL_MOMENTUM_SOL')
 ```
 
 ```bash
@@ -432,5 +361,5 @@ select distinct(s.strategy_id) from strategy s, strategy_management sm where s.s
 'SMA_CROSSOVER_4H',
 'BOLL_BAND_MOMENTUM_4H',
 'STOCH_OSCILL_MOMENTUM_4H',
-'BOLL_BAND_REVERSION_4H') and active_order = false and exchange = 'BYBIT'
+'BOLL_BAND_REVERSION_4H') or strategy_id in ('STOCH_OSCILL_MOMENTUM_LONG_1D_MKR') and active_order = false and exchange = 'BYBIT'
 ```

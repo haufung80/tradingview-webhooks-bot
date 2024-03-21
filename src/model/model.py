@@ -102,6 +102,7 @@ class Strategy(Base, BaseMixin):
     sim_mdd = Column(Float())
     lev_mdd = Column(Float())
     bnh_mdd = Column(Float())
+    sim_add = Column(Float())
     lev_add = Column(Float())
     bnh_add = Column(Float())
     expos = Column(Float())
