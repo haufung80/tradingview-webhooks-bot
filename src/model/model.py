@@ -282,7 +282,7 @@ class BitgetFetchOrderResponse(FetchOrderResponse):
             else:
                 self.order_status = resp['info']['status']  # spot order status is here
 
-        if resp['side'] == 'buy' and resp['status'] == 'close' and resp['fee'][
+        if resp['side'] == 'buy' and resp['status'] == 'closed' and resp['fee'][
             'currency'] != 'USDT':  # when buying spot and it is filled, fee is calculated in the coin you buy, '_SPBL' is the copy trade pair
             fee_detail = json.loads(resp['info']['feeDetail'])
             self.filled = resp['filled'] - abs(float(fee_detail['newFees']['r']))
