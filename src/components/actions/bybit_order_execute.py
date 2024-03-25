@@ -334,6 +334,8 @@ class BybitOrderExecute(Action):
                 return 'OSMO/USDT'
             elif symbol == 'RIFUSDT.P':
                 return 'RIF/USDT'
+            elif symbol == 'YFIUSDT.P':
+                return 'YFI/USDT'
             if 'USDT.P' in symbol:
                 symbol = symbol.replace('USDT.P', '/USDT')
             else:
