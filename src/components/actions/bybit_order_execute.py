@@ -428,7 +428,10 @@ class BybitOrderExecute(Action):
                     exchange_symbol == 'FLOKI/USDT' or \
                     exchange_symbol == 'LUNC/USDT':
                 okex_odr_price = alrt.price / 1000
-                formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
+                if exchange_symbol == 'FLOKI/USDT' and (1000 * amount) < 100000:
+                    formatted_amount = 100000
+                else:
+                    formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             elif exchange_symbol == 'FET/USDT' and amount < 10:
                 formatted_amount = 10
             else:
