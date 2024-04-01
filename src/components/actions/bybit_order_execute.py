@@ -433,7 +433,7 @@ class BybitOrderExecute(Action):
                 else:
                     formatted_amount = exchange.amount_to_precision(exchange_symbol, 1000 * amount)
             elif exchange_symbol == 'FET/USDT' and amount < 10:
-                formatted_amount = 10
+                formatted_amount = 11
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
             try:
