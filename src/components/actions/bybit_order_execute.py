@@ -336,6 +336,8 @@ class BybitOrderExecute(Action):
                 return 'RIF/USDT'
             elif symbol == 'YFIUSDT.P':
                 return 'YFI/USDT'
+            elif symbol == 'STETHUSDT':
+                return 'STETH/USDT'
             if 'USDT.P' in symbol:
                 symbol = symbol.replace('USDT.P', '/USDT')
             else:
@@ -352,6 +354,8 @@ class BybitOrderExecute(Action):
                 return 'FLOKI/USDT'
             elif symbol == '1000LUNCUSDT.P':
                 return 'LUNC/USDT'
+            elif symbol == 'STETHUSDT':
+                return 'STETH/USDT'
             if 'USDT.P' in symbol:
                 return symbol.replace('USDT.P', '/USDT')
             else:
@@ -389,6 +393,8 @@ class BybitOrderExecute(Action):
             elif exchange_symbol == 'WBTC/USDT' and amount < 0.005:
                 formatted_amount = 0.005
             elif exchange_symbol == 'ETH/USDT:USDT' and amount < 0.05:
+                formatted_amount = 0.05
+            elif exchange_symbol == 'STETH/USDT:USDT' and amount < 0.05:
                 formatted_amount = 0.05
             elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
                 formatted_amount = 1
