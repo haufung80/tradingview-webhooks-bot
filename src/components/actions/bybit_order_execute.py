@@ -318,8 +318,6 @@ class BybitOrderExecute(Action):
                 return 'FLOKI/USDT:USDT'
             elif symbol == '1000LUNCUSDT.P':
                 return 'LUNC/USDT:USDT'
-            elif symbol == 'CAKEUSDT.P':
-                return 'CAKE/USDT'
             elif symbol == 'HNTUSDT.P':
                 return 'HNT/USDT'
             elif symbol == 'CROUSDT.P':
