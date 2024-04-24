@@ -1,14 +1,13 @@
+import ccxt as ccxt
 import configparser
 import os
 import sys
 import time
 import traceback
-from typing import Any
-
-import ccxt as ccxt
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
+from typing import Any
 
 from components.actions.base.action import Action
 
@@ -336,6 +335,8 @@ class BybitOrderExecute(Action):
                 return 'YFI/USDT'
             elif symbol == 'STETHUSDT':
                 return 'STETH/USDT'
+            elif symbol == 'GNOUSDT':
+                return 'GNO/USDT'
             if 'USDT.P' in symbol:
                 symbol = symbol.replace('USDT.P', '/USDT')
             else:

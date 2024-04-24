@@ -248,9 +248,9 @@ insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('OKB','LEO') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  300, 300, 'OKEX', false from strategy where symbol in ('OKB','LEO') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  0, 0, 'BYBIT', false from strategy where symbol in ('OSMO','RIF') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  300, 300, 'BITGET', true from strategy where symbol in ('OSMO','RIF') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
-insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('OSMO','RIF') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  0, 0, 'BYBIT', false from strategy where symbol in ('GNO','OSMO','RIF') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  300, 300, 'BITGET', true from strategy where symbol in ('GNO','OSMO','RIF') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
+insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_OKEX'), strategy_id, false,  0, 0, 'OKEX', false from strategy where symbol in ('GNO','OSMO','RIF') and (direction = 'long' or direction = 'LONG') and strategy_id not in (select strategy_id from strategy_management where exchange = 'OKEX'));
 
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BYBIT'), strategy_id, false,  300, 300, 'BYBIT', true from strategy where symbol in ('QI', 'KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BYBIT'));
 insert into strategy_management(strat_mgmt_id, strategy_id, active_order, fund, init_fund, exchange, active) (select concat(strategy_id,'_BITGET'), strategy_id, false,  0, 0, 'BITGET', false from strategy where symbol in ('QI', 'KCS', 'XMR') and strategy_id not in (select strategy_id from strategy_management where exchange = 'BITGET'));
@@ -354,16 +354,11 @@ select distinct(strategy_id) from strategy_management where active_order = false
 'MACD_CROSSOVER_LONG_1D_VET',
 'SMA_CROSSOVER_LONG_4H_FET',
 'SMA_CROSSOVER_LONG_4H_WBTC',
+'SMA_CROSSOVER_LONG_1D_WBTC',
+'STOCH_OSCILL_MOMENTUM_LONG_4H_AGIX',
 'STOCH_OSCILL_MOMENTUM_LONG_4H_FET',
 'STOCH_OSCILL_MOMENTUM_LONG_4H_FIL',
-'STOCH_OSCILL_MOMENTUM_LONG_4H_GMX',
 'STOCH_OSCILL_MOMENTUM_LONG_4H_ONE',
-'BOLL_BAND_REVERSION_LONG_4H_STX',
 'BOLL_BAND_REVERSION_LONG_4H_MATIC',
-'K_CHANNEL_REVERSION_LONG_4H_AAVE',
-'K_CHANNEL_REVERSION_LONG_4H_CFX',
-'K_CHANNEL_REVERSION_LONG_4H_DOT',
-'K_CHANNEL_REVERSION_LONG_4H_INJ',
-'K_CHANNEL_REVERSION_LONG_4H_SSV',
 'MACD_CROSSOVER_LONG_4H_FIL',
 'MACD_CROSSOVER_LONG_4H_GRT') order by strategy_id desc
