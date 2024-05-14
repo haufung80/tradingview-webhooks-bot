@@ -384,19 +384,19 @@ class BybitOrderExecute(Action):
         elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
             bitget_odr_price = alrt.price
             if exchange_symbol == 'SBTC/SUSDT:SUSDT' and amount < 0.005:
-                formatted_amount = 0.005
+                formatted_amount = 0.001
             elif exchange_symbol == 'SETH/SUSDT:SUSDT' and amount < 0.05:
-                formatted_amount = 0.05
+                formatted_amount = 0.01
             elif exchange_symbol == 'BTC/USDT:USDT' and amount < 0.005:
-                formatted_amount = 0.005
+                formatted_amount = 0.001
             elif exchange_symbol == 'WBTC/USDT' and amount < 0.005:
-                formatted_amount = 0.005
+                formatted_amount = 0.001
             elif exchange_symbol == 'ETH/USDT:USDT' and amount < 0.05:
-                formatted_amount = 0.05
+                formatted_amount = 0.01
             elif exchange_symbol == 'STETH/USDT:USDT' and amount < 0.05:
-                formatted_amount = 0.05
+                formatted_amount = 0.01
             elif exchange_symbol == 'SOL/USDT:USDT' and amount < 1:
-                formatted_amount = 1
+                formatted_amount = 0.1
             elif exchange_symbol == 'HNT/USDT' and amount < 1:
                 formatted_amount = 1
             elif exchange_symbol == 'SHIB/USDT:USDT' or \
