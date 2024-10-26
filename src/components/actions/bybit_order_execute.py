@@ -517,7 +517,8 @@ class BybitOrderExecute(Action):
                 existing_order_hist: OrderHistory
                 existing_pos_order = None
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
-                    order_resp = bybit_fetch_order(exchange, existing_order_hist.order_id, exchange_symbol)
+                    order_resp = bybit_fetch_order(exchange, existing_order_hist.order_id,
+                                                   existing_order_hist.exchange_symbol)
                     print(order_resp)
                     existing_pos_order = BybitFetchOrderResponse(order_resp)
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
@@ -542,7 +543,7 @@ class BybitOrderExecute(Action):
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
-                    bybit_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
+                    bybit_cancel_unfilled_new_order(existing_order_hist, exchange, existing_order_hist.exchange_symbol)
                 # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and (
                 #         existing_pos_order.order_status == ExchangeOrderStatus.BITGET_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value):
                 #     bitget_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
@@ -552,14 +553,16 @@ class BybitOrderExecute(Action):
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
-                    open_mkt_order, closed_mkt_order = bybit_close_market_order(exchange, exchange_symbol,
+                    open_mkt_order, closed_mkt_order = bybit_close_market_order(exchange,
+                                                                                existing_order_hist.exchange_symbol,
                                                                                 tv_alrt.action,
                                                                                 existing_order_hist.filled_amt)
                     fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
                                                              existing_order_hist.exec_value,
                                                              closed_mkt_order.get_total_fee())
                     strategy_mgmt.fund = existing_order_hist.total_fund + fund_diff
-                    add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
+                    add_market_order_history(session, open_mkt_order, closed_mkt_order,
+                                             existing_order_hist.exchange_symbol,
                                              fund_diff,
                                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                                              tv_alrt, strategy_mgmt)
