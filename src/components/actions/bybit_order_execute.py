@@ -37,14 +37,14 @@ def add_alert_history(alert: TradingViewAlert):
         return ah.id
 
 
-def add_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount,
+def add_order_history(session, strategy_mgmt, exchange_symbol, action, order, formatted_amount,
                       alrt: TradingViewAlert, executed_price):
     session.add(OrderHistory(
         order_id=order.id,
         strategy_id=alrt.strategy_id,
         source_symbol=alrt.symbol,
         exchange_symbol=exchange_symbol,
-        action=alrt.action,
+        action=action,
         order_price=alrt.price,
         order_amt=formatted_amount,
         active=True,
@@ -57,14 +57,14 @@ def add_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_
 
 
 def add_market_order_history(session, opn_mkt_odr, cls_mkt_odr,
-                             exchange_symbol, fund_diff, total_fund, filled_amt,
+                             exchange_symbol, action, fund_diff, total_fund, filled_amt,
                              alrt: TradingViewAlert, strat_mgmt: StrategyManagement):
     session.add(OrderHistory(
         order_id=opn_mkt_odr.id,
         strategy_id=alrt.strategy_id,
         source_symbol=alrt.symbol,
         exchange_symbol=exchange_symbol,
-        action=alrt.action,
+        action=action,
         order_price=alrt.price,
         order_amt=filled_amt,
         active=False,
@@ -385,7 +385,7 @@ class BybitOrderExecute(Action):
         order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
                                                     alrt.price)
         order_rsp = BybitOrderResponse(order_payload)
-        add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+        add_order_history(session, strategy_mgmt, exchange_symbol, alrt.action, order_rsp, formatted_amount,
                           alrt, alrt.price)
 
     def send_pair_market_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert,
@@ -407,7 +407,7 @@ class BybitOrderExecute(Action):
             formatted_amount = self.format_amount(strategy_mgmt, symbol, amount, exchange)
             order_payload = exchange.create_market_order(symbol, side, formatted_amount)
             order_rsp = BybitOrderResponse(order_payload)
-            add_order_history(session, strategy_mgmt, symbol, order_rsp, formatted_amount,
+            add_order_history(session, strategy_mgmt, symbol, side, order_rsp, formatted_amount,
                               alrt, price)
 
         # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
@@ -553,16 +553,17 @@ class BybitOrderExecute(Action):
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
+                    order_action = 'sell' if existing_order_hist.action == 'buy' else 'buy'
                     open_mkt_order, closed_mkt_order = bybit_close_market_order(exchange,
                                                                                 existing_order_hist.exchange_symbol,
-                                                                                tv_alrt.action,
+                                                                                order_action,
                                                                                 existing_order_hist.filled_amt)
                     fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
                                                              existing_order_hist.exec_value,
                                                              closed_mkt_order.get_total_fee())
                     strategy_mgmt.fund = existing_order_hist.total_fund + fund_diff
                     add_market_order_history(session, open_mkt_order, closed_mkt_order,
-                                             existing_order_hist.exchange_symbol,
+                                             existing_order_hist.exchange_symbol, order_action,
                                              fund_diff,
                                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                                              tv_alrt, strategy_mgmt)
