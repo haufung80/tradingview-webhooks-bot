@@ -37,8 +37,8 @@ def add_alert_history(alert: TradingViewAlert):
         return ah.id
 
 
-def add_limit_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount,
-                            alrt: TradingViewAlert, executed_price):
+def add_order_history(session, strategy_mgmt, exchange_symbol, order, formatted_amount,
+                      alrt: TradingViewAlert, executed_price):
     session.add(OrderHistory(
         order_id=order.id,
         strategy_id=alrt.strategy_id,
@@ -380,8 +380,31 @@ class BybitOrderExecute(Action):
             order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
                                                         alrt.price)
             order_rsp = BybitOrderResponse(order_payload)
-            add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                                    alrt, alrt.price)
+            add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+                              alrt, alrt.price)
+
+    def send_pair_market_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert,
+                               exchange,
+                               session):
+        pair_symbol_list = exchange_symbol.split("/")
+        for sym in pair_symbol_list:
+            if strategy.leverage is None or strategy.leverage == 0 or not strategy.is_lev or strategy.is_lev is None:
+                amount = ((strategy_mgmt.fund / 2) * strategy.position_size) / alrt.price
+            else:
+                amount = (((strategy_mgmt.fund / 2) * strategy.position_size) / alrt.price) * strategy.leverage
+            if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
+                if sym == 'BTCUSDT' and amount < 0.001:
+                    formatted_amount = 0.001
+                elif sym == 'ETHUSDT' and amount < 0.01:
+                    formatted_amount = 0.01
+                elif sym == 'SUIUSDT' and amount < 10:
+                    formatted_amount = 10
+                else:
+                    formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
+                order_payload = exchange.create_market_order(exchange_symbol, alrt.action, formatted_amount)
+                order_rsp = BybitOrderResponse(order_payload)
+                add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+                                  alrt, alrt.price)
 
         # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
         #     bitget_odr_price = alrt.price
@@ -468,8 +491,17 @@ class BybitOrderExecute(Action):
             self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
             session.commit()
+        elif (strategy.direction == StrategyDirection.PAIR_LONG.value and tv_alrt.action == 'buy') or \
+                (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'sell'):
+            if strategy_mgmt.active_order:
+                raise Exception("There are still active order when opening position")
+            self.send_pair_market_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
+            strategy_mgmt.active_order = True
+            session.commit()
         elif (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'sell') or \
-                (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'buy'):
+                (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'buy') or \
+                (strategy.direction == StrategyDirection.PAIR_LONG.value and tv_alrt.action == 'sell') or \
+                (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'buy'):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
             existing_order_hist_list = session.execute(select(OrderHistory)
