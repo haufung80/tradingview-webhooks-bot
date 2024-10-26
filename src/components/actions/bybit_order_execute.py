@@ -472,12 +472,13 @@ class BybitOrderExecute(Action):
                 (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'buy'):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
-            existing_order_hist: OrderHistory = session.execute(select(OrderHistory)
-                .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
-                .where(OrderHistory.exchange == strategy_mgmt.exchange)
-                .order_by(OrderHistory.created_at.desc()).limit(
-                1)).scalar_one()
-            if existing_order_hist.active:
+            existing_order_hist_list = session.execute(select(OrderHistory)
+                                                       .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                                                       .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                                                       .where(OrderHistory.active)).all()
+
+            for (existing_order_hist,) in existing_order_hist_list:
+                existing_order_hist: OrderHistory
                 existing_pos_order = None
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
                     order_resp = bybit_fetch_order(exchange, existing_order_hist.order_id, exchange_symbol)
