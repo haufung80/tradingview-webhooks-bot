@@ -399,15 +399,15 @@ class BybitOrderExecute(Action):
         long_sym_last_price = exchange.fetch_ticker(long_sym)['last']
         short_sym_last_price = exchange.fetch_ticker(short_sym)['last']
 
-        for price, side in [(long_sym_last_price, 'buy'), (short_sym_last_price, 'sell')]:
+        for symbol, price, side in [(long_sym, long_sym_last_price, 'buy'), (short_sym, short_sym_last_price, 'sell')]:
             if strategy.leverage is None or strategy.leverage == 0 or not strategy.is_lev or strategy.is_lev is None:
                 amount = ((strategy_mgmt.fund / 2) * strategy.position_size) / price
             else:
                 amount = (((strategy_mgmt.fund / 2) * strategy.position_size) / price) * strategy.leverage
-            formatted_amount = self.format_amount(strategy_mgmt, exchange_symbol, amount, exchange)
-            order_payload = exchange.create_market_order(exchange_symbol, side, formatted_amount)
+            formatted_amount = self.format_amount(strategy_mgmt, symbol, amount, exchange)
+            order_payload = exchange.create_market_order(symbol, side, formatted_amount)
             order_rsp = BybitOrderResponse(order_payload)
-            add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+            add_order_history(session, strategy_mgmt, symbol, order_rsp, formatted_amount,
                               alrt, price)
 
         # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
