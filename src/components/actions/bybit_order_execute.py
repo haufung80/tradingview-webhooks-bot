@@ -118,7 +118,7 @@ def bybit_update_initial_order_history(eoh, epo):
 #     eoh.order_payload_2 = epo.payload
 
 
-def bybit_update_filled_order_history(eoh, epo):
+def bybit_update_filled_order_history(eoh, epo, total_fund):
     eoh.avg_price = epo.avg_price
     eoh.exec_value = epo.cum_exec_value
     eoh.fill_timestamp = epo.updated_time
@@ -127,7 +127,7 @@ def bybit_update_filled_order_history(eoh, epo):
     eoh.fee_rate = epo.get_fee_rate()
     eoh.total_fee = epo.get_total_fee()
     eoh.fund_diff = -epo.get_total_fee()
-    eoh.total_fund = eoh.total_fund - epo.get_total_fee()
+    eoh.total_fund = total_fund
 
 
 # def bitget_update_filled_order_history(eoh, epo):
@@ -534,7 +534,8 @@ class BybitOrderExecute(Action):
                 #     okex_update_initial_order_history(existing_order_hist, existing_pos_order)
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and existing_pos_order.order_status != ExchangeOrderStatus.BYBIT_NEW.value:
-                    bybit_update_filled_order_history(existing_order_hist, existing_pos_order)
+                    strategy_mgmt.fund = strategy_mgmt.fund - existing_pos_order.get_total_fee()
+                    bybit_update_filled_order_history(existing_order_hist, existing_pos_order, strategy_mgmt.fund)
                 # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and existing_pos_order.order_status != ExchangeOrderStatus.BITGET_NEW.value:
                 #     bitget_update_filled_order_history(existing_order_hist, existing_pos_order)
                 # elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and existing_pos_order.order_status != ExchangeOrderStatus.OKEX_NEW.value:
