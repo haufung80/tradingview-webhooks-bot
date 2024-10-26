@@ -315,4 +315,5 @@ class BybitFetchOrderResponse(FetchOrderResponse):
 class StrategyDirection(Enum):
     LONG = "LONG"
     SHORT = "SHORT"
-    PAIR = "PAIR"
+    PAIR_LONG = "PAIR_LONG"
+    PAIR_SHORT = "PAIR_SHORT"
