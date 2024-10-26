@@ -15,8 +15,7 @@ Werkzeug==2.2.3
 zipp==3.15.0
 ib_insync
 retry
-ccxt==4.2.64
-futu-api
+ccxt==4.2.6
 alembic
 sqlalchemy
 python-dotenv

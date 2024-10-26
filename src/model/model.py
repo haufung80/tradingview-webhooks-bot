@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -111,7 +110,7 @@ class Strategy(Base, BaseMixin):
     is_lev = Column(Boolean())
 
     def calculate_fund_diff(self, closed_price, open_price, total_fee):
-        if self.direction == StrategyDirection.LONG.value or self.direction == StrategyDirection.OLD_LONG.value:
+        if self.direction == StrategyDirection.LONG.value:
             return closed_price - open_price - total_fee
         else:
             return open_price - closed_price - total_fee
@@ -197,8 +196,8 @@ class OkexOrderResponse:
 
 class CryptoExchange(Enum):
     BYBIT = 'BYBIT'
-    BITGET = 'BITGET'
-    OKEX = 'OKEX'
+    # BITGET = 'BITGET'
+    # OKEX = 'OKEX'
 
 
 class ExchangeOrderStatus(Enum):
@@ -206,15 +205,15 @@ class ExchangeOrderStatus(Enum):
     BYBIT_PARTIALLY_FILLED = 'PartiallyFilled'
     BYBIT_FILLED = 'Filled'
     BYBIT_CANCELLED = 'Cancelled'
-    BITGET_NEW = 'open'
-    BITGET_PARTIALLY_FILLED = 'partiallyfilled'
-    BITGET_FILLED = 'filled'
-    BITGET_SPOT_FILLED = 'full_fill'
-    BITGET_CANCELLED = 'canceled'
-    OKEX_NEW = 'live'
-    OKEX_PARTIALLY_FILLED = 'partially_filled'
-    OKEX_FILLED = 'filled'
-    OKEX_CANCELLED = 'canceled'
+    # BITGET_NEW = 'open'
+    # BITGET_PARTIALLY_FILLED = 'partiallyfilled'
+    # BITGET_FILLED = 'filled'
+    # BITGET_SPOT_FILLED = 'full_fill'
+    # BITGET_CANCELLED = 'canceled'
+    # OKEX_NEW = 'live'
+    # OKEX_PARTIALLY_FILLED = 'partially_filled'
+    # OKEX_FILLED = 'filled'
+    # OKEX_CANCELLED = 'canceled'
 
 
 class FetchOrderResponse:
@@ -265,73 +264,71 @@ class BybitFetchOrderResponse(FetchOrderResponse):
             self.filled = float(resp['filled']) - float(resp['info']['cumExecFee'])
 
 
-class BitgetFetchOrderResponse(FetchOrderResponse):
-    def __init__(self, resp):
-        self.created_time = resp['timestamp']
-        self.payload = str(resp)
-
-        self.cum_exec_value = resp['cost']
-        if resp['average'] is not None:
-            self.avg_price = resp['average']
-        else:
-            self.avg_price = 0.0  # just to avoid err, dunno what happen
-
-        self.order_status = resp['status']
-        if self.order_status == 'closed':  # closed status imply it is filled/full_filled/partially_filled
-            if 'state' in resp['info'].keys():
-                self.order_status = resp['info']['state']  # contract order status is here
-            else:
-                self.order_status = resp['info']['status']  # spot order status is here
-
-        if resp['side'] == 'buy' and resp['status'] == 'closed' and resp['fee'][
-            'currency'] != 'USDT':  # when buying spot and it is filled, fee is calculated in the coin you buy, '_SPBL' is the copy trade pair
-            fee_detail = json.loads(resp['info']['feeDetail'])
-            self.filled = resp['filled'] - abs(float(fee_detail['newFees']['r']))
-            self._cum_exec_fee = abs(float(fee_detail['newFees']['r'])) * self.avg_price
-            self.updated_time = resp['timestamp']
-        else:
-            if self.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value or \
-                    self.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or \
-                    self.order_status == ExchangeOrderStatus.BITGET_FILLED.value:
-                self._cum_exec_fee = resp['fee']['cost']
-            else:
-                self._cum_exec_fee = 0
-            self.filled = resp['filled']
-            self.updated_time = resp['lastUpdateTimestamp']
-
-
-class OkexFetchOrderResponse(FetchOrderResponse):
-    def __init__(self, resp):
-        self.order_status = resp['info']['state']
-        self.created_time = resp['timestamp']
-        self.payload = str(resp)
-
-        self.cum_exec_value = resp['cost']
-        self.updated_time = resp['lastUpdateTimestamp']
-        if resp['average'] is not None:
-            self.avg_price = resp['average']
-        if resp['info']['feeCcy'] != 'USDT' \
-                and resp[
-            'average'] is not None:  # when trading spot fee is calculated in the coin itself. 'average' could be null when it is cancelling order
-            self._cum_exec_fee = abs(float(resp['info']['fee'])) * self.avg_price
-            self.filled = resp['filled'] - abs(float(resp['info']['fee']))
-        else:
-            self._cum_exec_fee = abs(float(resp['info']['fee']))
-            self.filled = resp['filled']
-
-
-class BitgetErrorCode(Enum):
-    ORDER_PRICE_HIGHER_THAN_BID_PRICE = "40815"
-    ORDER_PRICE_LOWER_THAN_BID_PRICE = "40816"
-
-
-class OkexErrorCode(Enum):
-    THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS = "51136"
-    THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS = "51137"
+# class BitgetFetchOrderResponse(FetchOrderResponse):
+#     def __init__(self, resp):
+#         self.created_time = resp['timestamp']
+#         self.payload = str(resp)
+#
+#         self.cum_exec_value = resp['cost']
+#         if resp['average'] is not None:
+#             self.avg_price = resp['average']
+#         else:
+#             self.avg_price = 0.0  # just to avoid err, dunno what happen
+#
+#         self.order_status = resp['status']
+#         if self.order_status == 'closed':  # closed status imply it is filled/full_filled/partially_filled
+#             if 'state' in resp['info'].keys():
+#                 self.order_status = resp['info']['state']  # contract order status is here
+#             else:
+#                 self.order_status = resp['info']['status']  # spot order status is here
+#
+#         if resp['side'] == 'buy' and resp['status'] == 'closed' and resp['fee'][
+#             'currency'] != 'USDT':  # when buying spot and it is filled, fee is calculated in the coin you buy, '_SPBL' is the copy trade pair
+#             fee_detail = json.loads(resp['info']['feeDetail'])
+#             self.filled = resp['filled'] - abs(float(fee_detail['newFees']['r']))
+#             self._cum_exec_fee = abs(float(fee_detail['newFees']['r'])) * self.avg_price
+#             self.updated_time = resp['timestamp']
+#         else:
+#             if self.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value or \
+#                     self.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or \
+#                     self.order_status == ExchangeOrderStatus.BITGET_FILLED.value:
+#                 self._cum_exec_fee = resp['fee']['cost']
+#             else:
+#                 self._cum_exec_fee = 0
+#             self.filled = resp['filled']
+#             self.updated_time = resp['lastUpdateTimestamp']
+#
+#
+# class OkexFetchOrderResponse(FetchOrderResponse):
+#     def __init__(self, resp):
+#         self.order_status = resp['info']['state']
+#         self.created_time = resp['timestamp']
+#         self.payload = str(resp)
+#
+#         self.cum_exec_value = resp['cost']
+#         self.updated_time = resp['lastUpdateTimestamp']
+#         if resp['average'] is not None:
+#             self.avg_price = resp['average']
+#         if resp['info']['feeCcy'] != 'USDT' \
+#                 and resp[
+#             'average'] is not None:  # when trading spot fee is calculated in the coin itself. 'average' could be null when it is cancelling order
+#             self._cum_exec_fee = abs(float(resp['info']['fee'])) * self.avg_price
+#             self.filled = resp['filled'] - abs(float(resp['info']['fee']))
+#         else:
+#             self._cum_exec_fee = abs(float(resp['info']['fee']))
+#             self.filled = resp['filled']
+#
+#
+# class BitgetErrorCode(Enum):
+#     ORDER_PRICE_HIGHER_THAN_BID_PRICE = "40815"
+#     ORDER_PRICE_LOWER_THAN_BID_PRICE = "40816"
+#
+#
+# class OkexErrorCode(Enum):
+#     THE_HIGHEST_PRICE_LIMIT_FOR_BUY_ORDERS = "51136"
+#     THE_LOWEST_PRICE_LIMIT_FOR_SELL_ORDERS = "51137"
 
 
 class StrategyDirection(Enum):
     LONG = "LONG"
     SHORT = "SHORT"
-    OLD_LONG = "long"
-    OLD_SHORT = "short"
