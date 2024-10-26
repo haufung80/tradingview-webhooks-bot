@@ -362,12 +362,7 @@ class BybitOrderExecute(Action):
         #     else:
         #         return symbol.replace('USDT', '/USDT')
 
-    def send_limit_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert, exchange,
-                         session):
-        if strategy.leverage is None or strategy.leverage == 0 or not strategy.is_lev or strategy.is_lev is None:
-            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
-        else:
-            amount = ((strategy_mgmt.fund * strategy.position_size) / alrt.price) * strategy.leverage
+    def format_amount(self, strategy_mgmt: StrategyManagement, exchange_symbol, amount, exchange):
         if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
             if exchange_symbol == 'BTCUSDT' and amount < 0.001:
                 formatted_amount = 0.001
@@ -377,34 +372,43 @@ class BybitOrderExecute(Action):
                 formatted_amount = 10
             else:
                 formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-            order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
-                                                        alrt.price)
-            order_rsp = BybitOrderResponse(order_payload)
-            add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                              alrt, alrt.price)
+            return formatted_amount
+
+    def send_limit_order(self, strategy: Strategy, strategy_mgmt: StrategyManagement, exchange_symbol,
+                         alrt: TradingViewAlert, exchange,
+                         session):
+        if strategy.leverage is None or strategy.leverage == 0 or not strategy.is_lev or strategy.is_lev is None:
+            amount = (strategy_mgmt.fund * strategy.position_size) / alrt.price
+        else:
+            amount = ((strategy_mgmt.fund * strategy.position_size) / alrt.price) * strategy.leverage
+        formatted_amount = self.format_amount(strategy_mgmt, exchange_symbol, amount, exchange)
+        order_payload = exchange.create_limit_order(exchange_symbol, alrt.action, formatted_amount,
+                                                    alrt.price)
+        order_rsp = BybitOrderResponse(order_payload)
+        add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+                          alrt, alrt.price)
 
     def send_pair_market_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert,
                                exchange,
                                session):
         pair_symbol_list = exchange_symbol.split("/")
-        for sym in pair_symbol_list:
+        if alrt.action == 'buy':
+            [long_sym, short_sym] = pair_symbol_list
+        elif alrt.action == 'sell':
+            [short_sym, long_sym] = pair_symbol_list
+        long_sym_last_price = exchange.fetch_ticker(long_sym)['last']
+        short_sym_last_price = exchange.fetch_ticker(short_sym)['last']
+
+        for price, side in [(long_sym_last_price, 'buy'), (short_sym_last_price, 'sell')]:
             if strategy.leverage is None or strategy.leverage == 0 or not strategy.is_lev or strategy.is_lev is None:
-                amount = ((strategy_mgmt.fund / 2) * strategy.position_size) / alrt.price
+                amount = ((strategy_mgmt.fund / 2) * strategy.position_size) / price
             else:
-                amount = (((strategy_mgmt.fund / 2) * strategy.position_size) / alrt.price) * strategy.leverage
-            if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
-                if sym == 'BTCUSDT' and amount < 0.001:
-                    formatted_amount = 0.001
-                elif sym == 'ETHUSDT' and amount < 0.01:
-                    formatted_amount = 0.01
-                elif sym == 'SUIUSDT' and amount < 10:
-                    formatted_amount = 10
-                else:
-                    formatted_amount = exchange.amount_to_precision(exchange_symbol, amount)
-                order_payload = exchange.create_market_order(exchange_symbol, alrt.action, formatted_amount)
-                order_rsp = BybitOrderResponse(order_payload)
-                add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
-                                  alrt, alrt.price)
+                amount = (((strategy_mgmt.fund / 2) * strategy.position_size) / price) * strategy.leverage
+            formatted_amount = self.format_amount(strategy_mgmt, exchange_symbol, amount, exchange)
+            order_payload = exchange.create_market_order(exchange_symbol, side, formatted_amount)
+            order_rsp = BybitOrderResponse(order_payload)
+            add_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
+                              alrt, price)
 
         # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
         #     bitget_odr_price = alrt.price

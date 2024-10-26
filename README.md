@@ -204,6 +204,8 @@ backtest_period,wfe,sr,l_sr,b_sr,win_rate,trd_num,sim_ret,lev_ret,bnh_ret,sim_md
 1. modify strategy code accordingly for the strategy
 2. add alert, enable webhook with URL pointing http://192.53.123.86/webhook
 3. Message sample is as follow, Alert name is same as strategy_id
+4. for pair trading, symbol must follow "ETHUSDT/BTCUSDT" where ETHUSDT and BTCUSDT both are legit exchange symbol,
+   program will split with "/"
 
 ```bash
 {
