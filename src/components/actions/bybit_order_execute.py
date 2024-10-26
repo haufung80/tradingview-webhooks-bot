@@ -388,9 +388,9 @@ class BybitOrderExecute(Action):
         add_order_history(session, strategy_mgmt, exchange_symbol, alrt.action, order_rsp, formatted_amount,
                           alrt, alrt.price)
 
-    def send_pair_market_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert,
-                               exchange,
-                               session):
+    def send_pair_limit_order(self, strategy: Strategy, strategy_mgmt, exchange_symbol, alrt: TradingViewAlert,
+                              exchange,
+                              session):
         pair_symbol_list = exchange_symbol.split("/")
         if alrt.action == 'buy':
             [long_sym, short_sym] = pair_symbol_list
@@ -405,7 +405,7 @@ class BybitOrderExecute(Action):
             else:
                 amount = (((strategy_mgmt.fund / 2) * strategy.position_size) / price) * strategy.leverage
             formatted_amount = self.format_amount(strategy_mgmt, symbol, amount, exchange)
-            order_payload = exchange.create_market_order(symbol, side, formatted_amount)
+            order_payload = exchange.create_limit_order(symbol, side, formatted_amount, price)
             order_rsp = BybitOrderResponse(order_payload)
             add_order_history(session, strategy_mgmt, symbol, side, order_rsp, formatted_amount,
                               alrt, price)
@@ -499,7 +499,7 @@ class BybitOrderExecute(Action):
                 (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'sell'):
             if strategy_mgmt.active_order:
                 raise Exception("There are still active order when opening position")
-            self.send_pair_market_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
+            self.send_pair_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
             session.commit()
         elif (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'sell') or \
