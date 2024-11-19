@@ -30,7 +30,8 @@ def add_alert_history(alert: TradingViewAlert):
             symbol=alert.symbol,
             exchange=alert.exchange,
             action=alert.action,
-            price=alert.price
+            price=alert.price,
+            position_size=alert.position_size
         )
         session.add(ah)
         session.commit()
@@ -485,18 +486,26 @@ class BybitOrderExecute(Action):
         #     add_limit_order_history(session, strategy_mgmt, exchange_symbol, order_rsp, formatted_amount,
         #                             alrt, okex_odr_price)
 
-    def place_order_in_exchange(self, tv_alrt, strategy, strategy_mgmt, session):
+    def place_order_in_exchange(self, tv_alrt: TradingViewAlert, strategy, strategy_mgmt, session):
         exchange = self.get_exchange_instance(strategy, strategy_mgmt)
         exchange_symbol = self.symbol_translate(tv_alrt.symbol, strategy_mgmt.exchange)
         if (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'buy') or \
-                (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'sell'):
+                (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'sell') or \
+                (
+                        strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size != "0") or \
+                (
+                        strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size != "0"):
             if strategy_mgmt.active_order:
                 raise Exception("There are still active order when opening position")
             self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
             session.commit()
         elif (strategy.direction == StrategyDirection.PAIR_LONG.value and tv_alrt.action == 'buy') or \
-                (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'sell'):
+                (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'sell') or \
+                (
+                        strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size != "0") or \
+                (
+                        strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size != "0"):
             if strategy_mgmt.active_order:
                 raise Exception("There are still active order when opening position")
             self.send_pair_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
@@ -505,7 +514,15 @@ class BybitOrderExecute(Action):
         elif (strategy.direction == StrategyDirection.LONG.value and tv_alrt.action == 'sell') or \
                 (strategy.direction == StrategyDirection.SHORT.value and tv_alrt.action == 'buy') or \
                 (strategy.direction == StrategyDirection.PAIR_LONG.value and tv_alrt.action == 'sell') or \
-                (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'buy'):
+                (strategy.direction == StrategyDirection.PAIR_SHORT.value and tv_alrt.action == 'buy') or \
+                (
+                        strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size == "0") or \
+                (
+                        strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size == "0") or \
+                (
+                        strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size == "0") or \
+                (
+                        strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size == "0"):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
             existing_order_hist_list = session.execute(select(OrderHistory)

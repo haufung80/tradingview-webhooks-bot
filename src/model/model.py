@@ -66,6 +66,7 @@ class AlertHistory(Base, BaseMixin):
     exchange = Column(String(50))
     action = Column(String(50))
     price = Column(Float())
+    position_size = Column(String(50))
 
 
 class Strategy(Base, BaseMixin):
@@ -127,6 +128,7 @@ class TradingViewAlert:
         self.timestamp = resp['data']['timestamp']
         self.exchange = resp['data']['exchange']
         self.source = resp['data']['source']
+        self.position_size = resp['data']['position_size']
         self.payload = str(resp['data'])
 
     id: int
@@ -137,6 +139,7 @@ class TradingViewAlert:
     timestamp: str
     exchange: str
     source: str
+    position_size: str
     payload: str
 
     def get_date(self):
@@ -317,3 +320,5 @@ class StrategyDirection(Enum):
     SHORT = "SHORT"
     PAIR_LONG = "PAIR_LONG"
     PAIR_SHORT = "PAIR_SHORT"
+    BOTH = "BOTH"
+    PAIR_BOTH = "PAIR_BOTH"
