@@ -94,7 +94,8 @@ def is_duplicate_alert(alert: TradingViewAlert):
             select(AlertHistory).where(
                 AlertHistory.timestamp == alert.get_date(),
                 AlertHistory.strategy_id == alert.strategy_id,
-                AlertHistory.action == alert.action)
+                AlertHistory.action == alert.action,
+                AlertHistory.position_size == alert.position_size)
         ).all()) > 0
 
 
