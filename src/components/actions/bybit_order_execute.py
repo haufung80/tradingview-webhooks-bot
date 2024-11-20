@@ -496,7 +496,16 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size != "0") or \
                 (
                         strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size != "0"):
-            if strategy_mgmt.active_order and strategy.direction != StrategyDirection.BOTH.value:
+            active_order_count = session.execute(
+                select(func.count())
+                    .select_from(OrderHistory)
+                    .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                    .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                    .where(OrderHistory.active)
+                    .where(OrderHistory.action == tv_alrt.action)
+                    .where(OrderHistory.exchange_symbol == exchange_symbol)
+            ).scalar()
+            if active_order_count > 0:
                 raise Exception("There are still active order when opening position")
             self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
@@ -507,7 +516,32 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size != "0") or \
                 (
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size != "0"):
-            if strategy_mgmt.active_order and strategy.direction != StrategyDirection.PAIR_BOTH.value:
+
+            pair_symbol_list = exchange_symbol.split("/")
+            if tv_alrt.action == 'sell':
+                [short_sym, long_sym] = pair_symbol_list
+            elif tv_alrt.action == 'buy':
+                [long_sym, short_sym] = pair_symbol_list
+            active_order_count = session.execute(
+                select(func.count())
+                    .select_from(OrderHistory)
+                    .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                    .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                    .where(OrderHistory.active)
+                    .where(
+                    or_(
+                        and_(
+                            OrderHistory.action == 'sell',
+                            OrderHistory.exchange_symbol == short_sym
+                        ),
+                        and_(
+                            OrderHistory.action == 'buy',
+                            OrderHistory.exchange_symbol == long_sym
+                        )
+                    )
+                )
+            ).scalar()
+            if active_order_count > 0:
                 raise Exception("There are still active order when opening position")
             self.send_pair_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
