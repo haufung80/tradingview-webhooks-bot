@@ -526,6 +526,7 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size == "0"):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
+            false_active_order = False
             if strategy.direction != StrategyDirection.BOTH.value and strategy.direction != StrategyDirection.PAIR_BOTH.value:
                 existing_order_hist_list = session.execute(select(OrderHistory)
                                                            .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
@@ -539,10 +540,10 @@ class BybitOrderExecute(Action):
                     elif tv_alrt.action == 'sell':
                         [cls_long_sym, cls_short_sym] = pair_symbol_list
                     existing_order_hist_list = session.execute(select(OrderHistory)
-                        .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
-                        .where(OrderHistory.exchange == strategy_mgmt.exchange)
-                        .where(OrderHistory.active)
-                        .where(
+                                                               .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                                                               .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                                                               .where(OrderHistory.active)
+                                                               .where(
                         or_(
                             and_(
                                 OrderHistory.action == 'sell',
@@ -553,7 +554,10 @@ class BybitOrderExecute(Action):
                                 OrderHistory.exchange_symbol == cls_long_sym
                             )
                         )
-                    )).all()
+                    ).order_by(OrderHistory.id.desc())).all()
+                    if len(existing_order_hist_list) > 1:
+                        false_active_order = True
+                        existing_order_hist_list = [existing_order_hist_list[-1]]
                 elif strategy.direction == StrategyDirection.BOTH.value:
                     if tv_alrt.action == 'buy':
                         action_to_cls = 'sell'
@@ -565,7 +569,10 @@ class BybitOrderExecute(Action):
                                                                .where(OrderHistory.active)
                                                                .where(OrderHistory.action == action_to_cls)
                                                                .where(
-                        OrderHistory.exchange_symbol == exchange_symbol)).all()
+                        OrderHistory.exchange_symbol == exchange_symbol).order_by(OrderHistory.id.desc())).all()
+                    if len(existing_order_hist_list) > 2:
+                        false_active_order = True
+                        existing_order_hist_list = existing_order_hist_list[-2:]
 
             for (existing_order_hist,) in existing_order_hist_list:
                 existing_order_hist: OrderHistory
@@ -653,7 +660,8 @@ class BybitOrderExecute(Action):
                 #                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                 #                              tv_alrt, strategy_mgmt)
                 existing_order_hist.active = False
-                strategy_mgmt.active_order = False
+                if not false_active_order:
+                    strategy_mgmt.active_order = False
                 session.commit()
 
     def place_order(self, tv_alrt):
