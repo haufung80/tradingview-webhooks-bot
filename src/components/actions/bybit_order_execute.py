@@ -190,7 +190,7 @@ def bybit_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BybitOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
     order_resp = bybit_fetch_order(exchange, open_mkt_order.id, exchange_symbol)
-    # print(order_resp)
+    print(order_resp)
     return open_mkt_order, BybitFetchOrderResponse(order_resp)
 
 
@@ -526,7 +526,6 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size == "0"):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
-            false_active_order = False
             if strategy.direction != StrategyDirection.BOTH.value and strategy.direction != StrategyDirection.PAIR_BOTH.value:
                 existing_order_hist_list = session.execute(select(OrderHistory)
                                                            .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
@@ -554,27 +553,19 @@ class BybitOrderExecute(Action):
                                 OrderHistory.exchange_symbol == cls_long_sym
                             )
                         )
-                    ).order_by(OrderHistory.id.desc())).all()
-                    print(existing_order_hist_list)
-                    if len(existing_order_hist_list) > 2:
-                        false_active_order = True
-                        existing_order_hist_list = existing_order_hist_list[-2:]
+                    )).all()
                 elif strategy.direction == StrategyDirection.BOTH.value:
                     if tv_alrt.action == 'buy':
                         action_to_cls = 'sell'
                     else:
                         action_to_cls = 'buy'
                     existing_order_hist_list = session.execute(select(OrderHistory)
-                                                               .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
-                                                               .where(OrderHistory.exchange == strategy_mgmt.exchange)
-                                                               .where(OrderHistory.active)
-                                                               .where(OrderHistory.action == action_to_cls)
-                                                               .where(
-                        OrderHistory.exchange_symbol == exchange_symbol).order_by(OrderHistory.id.desc())).all()
-                    print(existing_order_hist_list)
-                    if len(existing_order_hist_list) > 1:
-                        false_active_order = True
-                        existing_order_hist_list = [existing_order_hist_list[-1]]
+                        .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                        .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                        .where(OrderHistory.active)
+                        .where(OrderHistory.action == action_to_cls)
+                        .where(
+                        OrderHistory.exchange_symbol == exchange_symbol)).all()
 
             for (existing_order_hist,) in existing_order_hist_list:
                 existing_order_hist: OrderHistory
@@ -582,38 +573,19 @@ class BybitOrderExecute(Action):
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
                     order_resp = bybit_fetch_order(exchange, existing_order_hist.order_id,
                                                    existing_order_hist.exchange_symbol)
-                    # print(order_resp)
+                    print(order_resp)
                     existing_pos_order = BybitFetchOrderResponse(order_resp)
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
-                # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
-                #     print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
-                #     existing_pos_order = BitgetFetchOrderResponse(
-                #         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
-                #     bitget_update_initial_order_history(existing_order_hist, existing_pos_order)
-                # elif strategy_mgmt.exchange == CryptoExchange.OKEX.value:
-                #     print(exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
-                #     existing_pos_order = OkexFetchOrderResponse(
-                #         exchange.fetch_order(existing_order_hist.order_id, exchange_symbol))
-                #     okex_update_initial_order_history(existing_order_hist, existing_pos_order)
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and existing_pos_order.order_status != ExchangeOrderStatus.BYBIT_NEW.value:
                     strategy_mgmt.fund = strategy_mgmt.fund - existing_pos_order.get_total_fee()
                     bybit_update_filled_order_history(existing_order_hist, existing_pos_order, strategy_mgmt.fund)
-                # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and existing_pos_order.order_status != ExchangeOrderStatus.BITGET_NEW.value:
-                #     bitget_update_filled_order_history(existing_order_hist, existing_pos_order)
-                # elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and existing_pos_order.order_status != ExchangeOrderStatus.OKEX_NEW.value:
-                #     okex_update_filled_order_history(existing_order_hist, existing_pos_order)
+
                 session.flush()
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
                     bybit_cancel_unfilled_new_order(existing_order_hist, exchange, existing_order_hist.exchange_symbol)
-                # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and (
-                #         existing_pos_order.order_status == ExchangeOrderStatus.BITGET_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value):
-                #     bitget_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
-                # elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and (
-                #         existing_pos_order.order_status == ExchangeOrderStatus.OKEX_NEW.value or existing_pos_order.order_status == ExchangeOrderStatus.OKEX_PARTIALLY_FILLED.value):
-                #     okex_cancel_unfilled_new_order(existing_order_hist, exchange, exchange_symbol)
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
@@ -631,42 +603,20 @@ class BybitOrderExecute(Action):
                                              fund_diff,
                                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                                              tv_alrt, strategy_mgmt)
-                # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value and (
-                #         existing_pos_order.order_status == ExchangeOrderStatus.BITGET_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_PARTIALLY_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BITGET_SPOT_FILLED.value):
-                #     action = tv_alrt.action
-                #     open_mkt_order, closed_mkt_order = bitget_close_market_order(exchange, exchange_symbol,
-                #                                                                  action,
-                #                                                                  existing_order_hist.filled_amt)
-                #     fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
-                #                                              existing_order_hist.exec_value,
-                #                                              closed_mkt_order.get_total_fee())
-                #     strategy_mgmt.fund = existing_order_hist.total_fund + fund_diff
-                #     add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
-                #                              fund_diff,
-                #                              strategy_mgmt.fund, existing_order_hist.filled_amt,
-                #                              tv_alrt, strategy_mgmt)
-                # elif strategy_mgmt.exchange == CryptoExchange.OKEX.value and (
-                #         existing_pos_order.order_status == ExchangeOrderStatus.OKEX_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.OKEX_PARTIALLY_FILLED.value):
-                #     params = {}
-                #     # if not self.okex_exchange_sandbox_mode:
-                #     #     params = {'tdMode': 'spot_isolated'}
-                #     open_mkt_order, closed_mkt_order = okex_close_market_order(exchange, exchange_symbol,
-                #                                                                tv_alrt.action,
-                #                                                                existing_order_hist.filled_amt, params)
-                #     fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
-                #                                              existing_order_hist.exec_value,
-                #                                              closed_mkt_order.get_total_fee())
-                #     strategy_mgmt.fund = existing_order_hist.total_fund + fund_diff
-                #     add_market_order_history(session, open_mkt_order, closed_mkt_order, exchange_symbol,
-                #                              fund_diff,
-                #                              strategy_mgmt.fund, existing_order_hist.filled_amt,
-                #                              tv_alrt, strategy_mgmt)
                 existing_order_hist.active = False
-                if false_active_order:
-                    strategy_mgmt.active_order = True
-                else:
-                    strategy_mgmt.active_order = False
                 session.commit()
+
+            active_order_count = session.execute(
+                select(func.count())
+                    .select_from(OrderHistory)
+                    .where(
+                    OrderHistory.strategy_id == tv_alrt.strategy_id,
+                    OrderHistory.exchange == strategy_mgmt.exchange,
+                    OrderHistory.active
+                )
+            ).scalar()
+            strategy_mgmt.active_order = active_order_count > 0
+            session.commit()
 
     def place_order(self, tv_alrt):
         with Session(engine) as session:
