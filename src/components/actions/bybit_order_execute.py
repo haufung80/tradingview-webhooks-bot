@@ -555,9 +555,9 @@ class BybitOrderExecute(Action):
                             )
                         )
                     ).order_by(OrderHistory.id.desc())).all()
-                    if len(existing_order_hist_list) > 1:
+                    if len(existing_order_hist_list) > 2:
                         false_active_order = True
-                        existing_order_hist_list = [existing_order_hist_list[-1]]
+                        existing_order_hist_list = existing_order_hist_list[-2:]
                 elif strategy.direction == StrategyDirection.BOTH.value:
                     if tv_alrt.action == 'buy':
                         action_to_cls = 'sell'
@@ -570,9 +570,9 @@ class BybitOrderExecute(Action):
                                                                .where(OrderHistory.action == action_to_cls)
                                                                .where(
                         OrderHistory.exchange_symbol == exchange_symbol).order_by(OrderHistory.id.desc())).all()
-                    if len(existing_order_hist_list) > 2:
+                    if len(existing_order_hist_list) > 1:
                         false_active_order = True
-                        existing_order_hist_list = existing_order_hist_list[-2:]
+                        existing_order_hist_list = [existing_order_hist_list[-1]]
 
             for (existing_order_hist,) in existing_order_hist_list:
                 existing_order_hist: OrderHistory
