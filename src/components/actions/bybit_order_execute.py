@@ -7,7 +7,7 @@ from typing import Any
 
 import ccxt as ccxt
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, or_, and_
 from sqlalchemy.orm import Session
 
 from components.actions.base.action import Action
@@ -496,7 +496,7 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size != "0") or \
                 (
                         strategy.direction == StrategyDirection.BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size != "0"):
-            if strategy_mgmt.active_order:
+            if strategy_mgmt.active_order and strategy.direction != StrategyDirection.BOTH.value:
                 raise Exception("There are still active order when opening position")
             self.send_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
@@ -507,7 +507,7 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'buy' and tv_alrt.position_size != "0") or \
                 (
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size != "0"):
-            if strategy_mgmt.active_order:
+            if strategy_mgmt.active_order and strategy.direction != StrategyDirection.PAIR_BOTH.value:
                 raise Exception("There are still active order when opening position")
             self.send_pair_limit_order(strategy, strategy_mgmt, exchange_symbol, tv_alrt, exchange, session)
             strategy_mgmt.active_order = True
@@ -526,10 +526,46 @@ class BybitOrderExecute(Action):
                         strategy.direction == StrategyDirection.PAIR_BOTH.value and tv_alrt.action == 'sell' and tv_alrt.position_size == "0"):
             if not strategy_mgmt.active_order:
                 raise Exception("There is no active order when closing position")
-            existing_order_hist_list = session.execute(select(OrderHistory)
-                                                       .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
-                                                       .where(OrderHistory.exchange == strategy_mgmt.exchange)
-                                                       .where(OrderHistory.active)).all()
+            if strategy.direction != StrategyDirection.BOTH.value and strategy.direction != StrategyDirection.PAIR_BOTH.value:
+                existing_order_hist_list = session.execute(select(OrderHistory)
+                                                           .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                                                           .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                                                           .where(OrderHistory.active)).all()
+            else:
+                if strategy.direction == StrategyDirection.PAIR_BOTH.value:
+                    pair_symbol_list = exchange_symbol.split("/")
+                    if tv_alrt.action == 'buy':
+                        [cls_short_sym, cls_long_sym] = pair_symbol_list
+                    elif tv_alrt.action == 'sell':
+                        [cls_long_sym, cls_short_sym] = pair_symbol_list
+                    existing_order_hist_list = session.execute(select(OrderHistory)
+                        .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                        .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                        .where(OrderHistory.active)
+                        .where(
+                        or_(
+                            and_(
+                                OrderHistory.action == 'sell',
+                                OrderHistory.exchange_symbol == cls_short_sym
+                            ),
+                            and_(
+                                OrderHistory.action == 'buy',
+                                OrderHistory.exchange_symbol == cls_long_sym
+                            )
+                        )
+                    )).all()
+                elif strategy.direction == StrategyDirection.BOTH.value:
+                    if tv_alrt.action == 'buy':
+                        action_to_cls = 'sell'
+                    else:
+                        action_to_cls = 'buy'
+                    existing_order_hist_list = session.execute(select(OrderHistory)
+                                                               .where(OrderHistory.strategy_id == tv_alrt.strategy_id)
+                                                               .where(OrderHistory.exchange == strategy_mgmt.exchange)
+                                                               .where(OrderHistory.active)
+                                                               .where(OrderHistory.action == action_to_cls)
+                                                               .where(
+                        OrderHistory.exchange_symbol == exchange_symbol)).all()
 
             for (existing_order_hist,) in existing_order_hist_list:
                 existing_order_hist: OrderHistory
