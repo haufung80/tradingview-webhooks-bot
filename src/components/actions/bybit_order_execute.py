@@ -190,7 +190,7 @@ def bybit_close_market_order(exchange, exchange_symbol, action, amt):
     open_mkt_order = BybitOrderResponse(
         exchange.create_market_order(exchange_symbol, action, amt))
     order_resp = bybit_fetch_order(exchange, open_mkt_order.id, exchange_symbol)
-    print(order_resp)
+    # print(order_resp)
     return open_mkt_order, BybitFetchOrderResponse(order_resp)
 
 
@@ -556,6 +556,7 @@ class BybitOrderExecute(Action):
                         )
                     ).order_by(OrderHistory.id.desc())).all()
                     if len(existing_order_hist_list) > 2:
+                        print("here")
                         false_active_order = True
                         existing_order_hist_list = existing_order_hist_list[-2:]
                 elif strategy.direction == StrategyDirection.BOTH.value:
@@ -571,6 +572,7 @@ class BybitOrderExecute(Action):
                                                                .where(
                         OrderHistory.exchange_symbol == exchange_symbol).order_by(OrderHistory.id.desc())).all()
                     if len(existing_order_hist_list) > 1:
+                        print("here")
                         false_active_order = True
                         existing_order_hist_list = [existing_order_hist_list[-1]]
 
@@ -580,7 +582,7 @@ class BybitOrderExecute(Action):
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value:
                     order_resp = bybit_fetch_order(exchange, existing_order_hist.order_id,
                                                    existing_order_hist.exchange_symbol)
-                    print(order_resp)
+                    # print(order_resp)
                     existing_pos_order = BybitFetchOrderResponse(order_resp)
                     bybit_update_initial_order_history(existing_order_hist, existing_pos_order)
                 # elif strategy_mgmt.exchange == CryptoExchange.BITGET.value:
