@@ -660,7 +660,9 @@ class BybitOrderExecute(Action):
                 #                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                 #                              tv_alrt, strategy_mgmt)
                 existing_order_hist.active = False
-                if not false_active_order:
+                if false_active_order:
+                    strategy_mgmt.active_order = True
+                else:
                     strategy_mgmt.active_order = False
                 session.commit()
 
