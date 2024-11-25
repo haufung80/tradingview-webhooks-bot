@@ -623,12 +623,13 @@ class BybitOrderExecute(Action):
 
                 if strategy_mgmt.exchange == CryptoExchange.BYBIT.value and (
                         existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_FILLED.value or existing_pos_order.order_status == ExchangeOrderStatus.BYBIT_PARTIALLY_FILLED.value):
-                    order_action = 'sell' if existing_order_hist.action == 'buy' else 'buy'
+                    curr_order_action = 'sell' if existing_order_hist.action == 'buy' else 'buy'  # if existing order is buying, current market order will be selling
                     open_mkt_order, closed_mkt_order = bybit_close_market_order(exchange,
                                                                                 existing_order_hist.exchange_symbol,
-                                                                                order_action,
+                                                                                curr_order_action,
                                                                                 existing_order_hist.filled_amt)
-                    fund_diff = strategy.calculate_fund_diff(closed_mkt_order.cum_exec_value,
+                    fund_diff = strategy.calculate_fund_diff(curr_order_action,
+                                                             closed_mkt_order.cum_exec_value,
                                                              existing_order_hist.exec_value,
                                                              closed_mkt_order.get_total_fee())
                     strategy_mgmt.fund = strategy_mgmt.fund + fund_diff

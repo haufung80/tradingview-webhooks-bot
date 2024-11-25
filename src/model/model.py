@@ -93,8 +93,8 @@ class Strategy(Base, BaseMixin):
     timeframe = Column(String(20))
     is_lev = Column(Boolean())
 
-    def calculate_fund_diff(self, closed_price, open_price, total_fee):
-        if self.direction == StrategyDirection.LONG.value:
+    def calculate_fund_diff(self, curr_action, closed_price, open_price, total_fee):
+        if curr_action == 'sell':
             return closed_price - open_price - total_fee
         else:
             return open_price - closed_price - total_fee
