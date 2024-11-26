@@ -634,7 +634,7 @@ class BybitOrderExecute(Action):
                                                              closed_mkt_order.get_total_fee())
                     strategy_mgmt.fund = strategy_mgmt.fund + fund_diff
                     add_market_order_history(session, open_mkt_order, closed_mkt_order,
-                                             existing_order_hist.exchange_symbol, order_action,
+                                             existing_order_hist.exchange_symbol, curr_order_action,
                                              fund_diff,
                                              strategy_mgmt.fund, existing_order_hist.filled_amt,
                                              tv_alrt, strategy_mgmt)
